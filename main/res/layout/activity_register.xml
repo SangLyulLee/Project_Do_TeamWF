@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:background="@drawable/do_background"
+           android:layout_height="150dp">
+
+           <TextView
+                android:text="회원가입"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/et_id"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="email"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:background="#999999"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_height="0.5dp"/>
+
+
+            <EditText
+                android:id="@+id/et_pwd"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:inputType="textPassword"
+                android:hint="password"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:background="#FFFFFF" />
+
+            <RadioGroup
+                android:id="@+id/type_rg"
+                android:layout_width="match_parent"
+                android:layout_height="193dp">
+
+                <TextView
+                    android:id="@+id/textView8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="유형 선택" />
+
+                <RadioButton
+                    android:id="@+id/type_rbtn1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="지체 장애인" />
+
+                <RadioButton
+                    android:id="@+id/type_rbtn2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="시각 장애인" />
+
+                <RadioButton
+                    android:id="@+id/type_rbtn3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="기사" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:background="#999999" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_register2"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:background="@drawable/background_radius_skyblue"
+            android:text="회원가입하기" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
