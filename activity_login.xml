@@ -12,12 +12,13 @@
         android:layout_height="48dp"
         android:layout_marginTop="200dp"
         android:ems="10"
-        android:hint="아이디를 입력하세요"
+        android:hint="@string/plz_name"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:autofillHints="" />
 
     <EditText
         android:id="@+id/et_pwd"
@@ -25,12 +26,13 @@
         android:layout_height="48dp"
         android:layout_marginTop="340dp"
         android:ems="10"
-        android:hint="비밀번호를 입력하세요"
+        android:hint="@string/plz_passwd"
         android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:autofillHints="" />
 
     <Button
         android:id="@+id/btn_login"
@@ -38,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
         android:backgroundTint="#566ACD"
-        android:text="로그인"
+        android:text="@string/login"
         android:layout_margin="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_register"
@@ -50,7 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
         android:backgroundTint="#3869CA"
-        android:text="회원가입"
+        android:text="@string/signup"
         android:layout_margin="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

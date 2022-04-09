@@ -31,7 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
-   //     mDatabaseRef = FirebaseDatabase.getInstance().getReference("DO!-WF");
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference("member");
 
         mEtId = findViewById(R.id.et_id);
         mEtPwd = findViewById(R.id.et_pwd);

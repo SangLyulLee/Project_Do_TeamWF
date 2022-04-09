@@ -17,7 +17,7 @@
         <activity
             android:name=".map.MapActivity"
             android:exported="true" />
-
+        <meta-data android:name=".map.MapActivity" android:value="true" />
         <meta-data
             android:name="com.kakao.sdk.AppKey"
             android:value="b1b5cd568dde2755f75f5c6fb928294a" />
