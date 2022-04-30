@@ -1,28 +1,38 @@
 package com.example.myapplication.map;
 
 public class BusStop {
-    private int busStopNum;
+    private String busStopNum;
     private String busStopName;
-    private double iat;
-    private double lng;
+    private String iat;
+    private String lng;
 
     public BusStop() { }
 
-    public int getBusStopNum() {
-        return busStopNum;
+    public String getBusStopNum() { return busStopNum; }
+
+    public void setBusStopNum(String busStopNum) { this.busStopNum = busStopNum; }
+
+    public String getBusStopName() {
+        return busStopName;
     }
 
-    public void setBusStopNum(int busStopNum) { this.busStopNum = busStopNum; }
+    public void setBusStopName(String busStopName) {
+        this.busStopName = busStopName;
+    }
 
-    public String getBusStopName() { return busStopName; }
+    public String getIat() {
+        return iat;
+    }
 
-    public void setBusStopName(String busStopName) { this.busStopName = busStopName; }
+    public void setIat(String iat) {
+        this.iat = iat;
+    }
 
-    public double getIat() { return iat; }
+    public String getLng() {
+        return lng;
+    }
 
-    public void setIat(double iat) { this.iat = iat; }
-
-    public double getLng() { return lng; }
-
-    public void setLng(double lng) { this.lng = lng; }
+    public void setLng(String lng) {
+        this.lng = lng;
+    }
 }
