@@ -9,7 +9,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.myapplication.map.Route;
 import com.example.myapplication.map.Route_list;
 
 import java.util.ArrayList;
@@ -58,5 +57,13 @@ public class ListAdapter extends BaseAdapter {
         routeList.setRoute_text(text);
 
         route_list.add(routeList);
+    }
+
+    public void setListImg(int i, Drawable img) {
+        route_list.get(i).setRoute_image(img);
+    }
+
+    public void list_clear() {
+        route_list.clear();
     }
 }

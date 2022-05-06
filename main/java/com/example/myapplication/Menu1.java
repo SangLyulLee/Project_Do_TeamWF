@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.myapplication.login.LoginActivity;
 import com.example.myapplication.map.BusStop;
 import com.example.myapplication.map.BusStopAdapter;
 import com.example.myapplication.map.MapActivity;
@@ -31,8 +30,6 @@ public class Menu1  extends AppCompatActivity {
     private ArrayList<BusStop> arrayList;
     private FirebaseDatabase database;
     private DatabaseReference databaseReference;
-
-    boolean isRecyclerViewVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

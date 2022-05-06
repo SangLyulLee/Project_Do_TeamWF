@@ -6,7 +6,12 @@ public class UserAccount {
     private String idToken;     // Firebase Uid (고유 토큰 정보)
     private String id;          // 아이디
     private String password;    // 비밀번호
+    private String name;        // 사용자 이름
     private int u_type;         // 장애 유형
+
+    public String getName() { return name; }
+
+    public void setName(String name) { this.name = name; }
 
     public int getU_type() { return u_type; }
 

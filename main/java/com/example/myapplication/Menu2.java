@@ -1,36 +1,27 @@
 package com.example.myapplication;
 
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.map.BusStop;
-import com.example.myapplication.map.MapActivity;
-import com.example.myapplication.map.Route;
+import com.example.myapplication.map.BusTime;
 import com.example.myapplication.map.Route_list;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Menu2 extends AppCompatActivity {
     private ArrayList<BusStop> arrayList = new ArrayList<>();
@@ -38,6 +29,13 @@ public class Menu2 extends AppCompatActivity {
     private DatabaseReference databaseReference = database.getReference("BusStop");
     private String str_a;
     private String str_b;
+    private ArrayList<BusTime> busTimeArray = new ArrayList<>();
+    private int st_time;
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
+    private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
+    private Date date = new Date();
+    private int time_int;
+    private String input_str;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +49,9 @@ public class Menu2 extends AppCompatActivity {
         final ArrayList<Route_list> routeList_arr = new ArrayList<Route_list>();
         ListAdapter listAdapter = new ListAdapter();
         list2.setAdapter(listAdapter);
+
+
+        Button imgButton = (Button) findViewById(R.id.refreshBtn);
 
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -77,7 +78,7 @@ public class Menu2 extends AppCompatActivity {
         route_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String input_str = edit2.getText().toString();
+                input_str = edit2.getText().toString();
 
                 /* 버스 노선, 이미지 */
                 databaseReference = database.getReference("BusRoute").child("1").child("route");
@@ -85,6 +86,7 @@ public class Menu2 extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         str.clear();
+                        str1_name.clear();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             if (input_str.equals(snapshot.getKey())) {
                                 for (DataSnapshot snapshot2 : dataSnapshot.child(input_str).getChildren()) {
@@ -122,6 +124,7 @@ public class Menu2 extends AppCompatActivity {
                             }
                         }
 
+                        listAdapter.list_clear();
                         for (int i=0; i<str1_name.size(); i++) {
                             if (i == 0) {
                                 listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i));
@@ -133,13 +136,100 @@ public class Menu2 extends AppCompatActivity {
                                 listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i));
                             }
                         }
-                        listAdapter.notifyDataSetChanged();
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
                     }
                 });
+
+                databaseReference = database.getReference("BusTime").child(input_str);
+                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        busTimeArray.clear();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            if (input_str.equals(snapshot.getKey())) {
+                                for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
+                                    busTimeArray.add(snapshot1.getValue(BusTime.class));
+                                }
+                            }
+                        }
+
+                        String time_hours = simpleDateFormat.format(date);
+                        String time_minutes = simpleDateFormat2.format(date);
+                        time_int = (Integer.parseInt(time_hours)*60) + Integer.parseInt(time_minutes);
+
+                        for (int i=0; i<busTimeArray.size(); i++) {
+                            st_time = (busTimeArray.get(i).getHours()*60) + busTimeArray.get(i).getMinutes();
+                            if (time_int - st_time < 0) { continue; }
+                            else {
+                                for (int j = 1; j < str.size(); j++) {
+                                    if (time_int - st_time < (Integer.parseInt(str.get(j))/60) && time_int - st_time >= (Integer.parseInt(str.get(j-1))/60)) {
+                                        if (j == 1) {
+                                            listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
+                                            break;
+                                        }
+                                        else {
+                                            listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2_1));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        listAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
+
+        imgButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                input_str = edit2.getText().toString();
+                Date date2 = new Date();
+                String time_hours = simpleDateFormat.format(date2);
+                String time_minutes = simpleDateFormat2.format(date2);
+                time_int = (Integer.parseInt(time_hours)*60) + Integer.parseInt(time_minutes);
+
+                listAdapter.list_clear();
+                for (int i=0; i<str1_name.size(); i++) {
+                    if (i == 0) {
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i));
+                    }
+                    else if (i == str1_name.size()-1) {
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i));
+                    }
+                    else {
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i));
+                    }
+                }
+
+                for (int i=0; i<busTimeArray.size(); i++) {
+                    st_time = (busTimeArray.get(i).getHours()*60) + busTimeArray.get(i).getMinutes();
+                    if (time_int - st_time < 0) { continue; }
+                    else {
+                        for (int j = 1; j < str.size(); j++) {
+                            if (time_int - st_time < (Integer.parseInt(str.get(j))/60) && time_int - st_time >= (Integer.parseInt(str.get(j-1))/60)) {
+                                if (j == 1) {
+                                    listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
+                                    break;
+                                }
+                                else {
+                                    listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2_1));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                listAdapter.notifyDataSetChanged();
             }
         });
     }

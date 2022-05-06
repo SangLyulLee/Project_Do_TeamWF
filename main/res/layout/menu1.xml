@@ -23,7 +23,7 @@
         android:layout_marginTop="28dp"
         android:ems="10"
         android:gravity="start|top"
-        android:hint="목적지를 입력하세요"
+        android:hint="정류장 이름을 입력하세요."
         android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.23"

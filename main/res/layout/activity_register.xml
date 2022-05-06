@@ -53,6 +53,21 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
+                android:background="#999999"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_height="0.5dp"/>
+
+
+            <EditText
+                android:id="@+id/et_name"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="이름"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="36dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
@@ -74,18 +89,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:checked="true"
+                    android:minHeight="48dp"
                     android:text="지체 장애인" />
 
                 <RadioButton
                     android:id="@+id/type_rbtn2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
                     android:text="시각 장애인" />
 
                 <RadioButton
                     android:id="@+id/type_rbtn3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
                     android:text="기사" />
             </RadioGroup>
 

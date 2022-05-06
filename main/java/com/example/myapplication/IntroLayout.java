@@ -1,10 +1,10 @@
 package com.example.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class IntroLayout extends AppCompatActivity {
 
@@ -17,10 +17,10 @@ public class IntroLayout extends AppCompatActivity {
             @Override
             public void run() {
                 Intent intent = new Intent(getApplicationContext(), IntroActivity.class);
-                startActivity(intent); //인트로 실행 후 바로 MainActivity로 넘어감.
+                startActivity(intent); //인트로 실행 후 IntroActivity 화면으로
                 finish();
             }
-        }, 2000); //1초 후 인트로 실행
+        }, 2000); //1초 인트로 실행
     }
 
     @Override
