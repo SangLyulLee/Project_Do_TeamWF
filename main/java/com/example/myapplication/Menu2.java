@@ -12,7 +12,6 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.map.BusStop;
 import com.example.myapplication.map.BusTime;
-import com.example.myapplication.map.Route_list;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,8 +44,6 @@ public class Menu2 extends AppCompatActivity {
         final ArrayList<String> str = new ArrayList<String>();
         final ArrayList<String> str1_name = new ArrayList<String>();
         ListView list2 = (ListView) findViewById(R.id.listView2_menu2);
-
-        final ArrayList<Route_list> routeList_arr = new ArrayList<Route_list>();
         ListAdapter listAdapter = new ListAdapter();
         list2.setAdapter(listAdapter);
 

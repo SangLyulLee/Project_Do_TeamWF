@@ -56,6 +56,12 @@
         <activity
             android:name=".Menu3"
             android:exported="true" />
+        <activity
+            android:name=".driver.DriverMain"
+            android:exported="true"/>
+        <activity
+            android:name=".driver.DriverSelect"
+            android:exported="true"/>
     </application>
 
 </manifest>
