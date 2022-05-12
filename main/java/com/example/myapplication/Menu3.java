@@ -1,13 +1,20 @@
 package com.example.myapplication;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.map.BusStop;
 import com.example.myapplication.notice.Notice;
+import com.example.myapplication.notice.NoticeRe;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -22,17 +29,11 @@ public class Menu3 extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
-    private DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference("Notice");
+    private DatabaseReference mDatabaseRef;
     private int sTime;
     private int sTimer, eTimer;
     private String sStopName, eStopName;
     private Notice notice = new Notice();
-
-    /*
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
-    private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
-    private Date date = new Date();
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,69 @@ public class Menu3 extends AppCompatActivity {
         setContentView(R.layout.menu3);
         TextView sTextView = (TextView) findViewById(R.id.textView3);
         TextView eTextView = (TextView) findViewById(R.id.textView4);
+        Button noticeR_btn = (Button) findViewById(R.id.menu3button1);
+        Button noticeC_btn = (Button) findViewById(R.id.menu3button2);
 
+        /* 알림 변경 버튼 */
+        noticeR_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder dlg_noticeR = new AlertDialog.Builder(Menu3.this);
+                dlg_noticeR.setTitle("목적지 변경 확인");
+
+                dlg_noticeR.setMessage("목적지를 변경하시겠습니까?");
+                dlg_noticeR.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                });
+                dlg_noticeR.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(Menu3.this, NoticeRe.class);
+                        startActivity(intent);
+                    }
+                });
+                dlg_noticeR.show();
+            }
+        });
+
+        /* 알림 취소 버튼 */
+        noticeC_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder dlg_noticeC = new AlertDialog.Builder(Menu3.this);
+                dlg_noticeC.setTitle("알림 취소 확인");
+
+                dlg_noticeC.setMessage("정말 알림을 취소하시겠습니까?");
+                dlg_noticeC.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                });
+                dlg_noticeC.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        mDatabaseRef = database.getReference("Notice");
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                String noKey = getIntent().getStringExtra("noticeKey");
+                                mDatabaseRef.child(noKey).removeValue();
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+                        Toast.makeText(Menu3.this, "알림이 취소되었습니다.", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Menu3.this, MainActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                dlg_noticeC.show();
+            }
+        });
+
+        mDatabaseRef = database.getReference("Notice");
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -49,18 +112,18 @@ public class Menu3 extends AppCompatActivity {
                         notice = snapshot.getValue(Notice.class);
                     }
                 }
-                mDatabaseRef = FirebaseDatabase.getInstance().getReference("BusTime").child(notice.getBusNum()).child(notice.getBusTime()).child("hours");
+                mDatabaseRef = database.getReference("BusTime").child(notice.getBusNum()).child(notice.getBusTime()).child("hours");
                 mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         sTime = (snapshot.getValue(int.class)*60);
-                        mDatabaseRef = FirebaseDatabase.getInstance().getReference("BusTime").child(notice.getBusNum()).child(notice.getBusTime()).child("minutes");
+                        mDatabaseRef = database.getReference("BusTime").child(notice.getBusNum()).child(notice.getBusTime()).child("minutes");
                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 sTime = sTime + snapshot.getValue(int.class);
 
-                                mDatabaseRef = FirebaseDatabase.getInstance().getReference("BusRoute").child(notice.getBusNum());
+                                mDatabaseRef = database.getReference("BusRoute").child(notice.getBusNum());
                                 mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -79,7 +142,7 @@ public class Menu3 extends AppCompatActivity {
                                         sTimer = (Integer.parseInt(timer.get(sIndex))/60) + sTime;
                                         eTimer = (Integer.parseInt(timer.get(eIndex))/60) + sTime;
 
-                                        mDatabaseRef = FirebaseDatabase.getInstance().getReference("BusStop");
+                                        mDatabaseRef = database.getReference("BusStop");
                                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -95,44 +158,28 @@ public class Menu3 extends AppCompatActivity {
                                                         eStopName = busStopArray.get(i).getBusStopName();
                                                     }
                                                 }
-
-                                                /*
-                                                String time_hours = simpleDateFormat.format(date);
-                                                String time_minutes = simpleDateFormat2.format(date);
-                                                int nTime = (Integer.parseInt(time_hours)*60) + Integer.parseInt(time_minutes);
-                                                */
-
                                                 sTextView.setText("버스 번호 : "+notice.getBusNum()+"번\n"+"탑승 시간 : "+(sTimer/60)+"시 "+(sTimer%60)+"분 경\n"+"탑승 장소 : "+sStopName+"\n");
                                                 eTextView.setText("버스 번호 : "+notice.getBusNum()+"번\n"+"하차 시간 : "+(eTimer/60)+"시 "+(eTimer%60)+"분 경\n"+"하차 장소 : "+eStopName+"\n");
                                             }
 
                                             @Override
-                                            public void onCancelled(@NonNull DatabaseError error) {
-
-                                            }
+                                            public void onCancelled(@NonNull DatabaseError error) { }
                                         });
                                     }
                                     @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
+                                    public void onCancelled(@NonNull DatabaseError error) { }
                                 });
                             }
                             @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
+                            public void onCancelled(@NonNull DatabaseError error) { }
                         });
                     }
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
+                    public void onCancelled(@NonNull DatabaseError error) { }
                 });
             }
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
 }

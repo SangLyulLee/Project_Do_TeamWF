@@ -62,6 +62,15 @@
         <activity
             android:name=".driver.DriverSelect"
             android:exported="true"/>
+        <activity
+            android:name=".notice.EbusSet"
+            android:exported="true"/>
+        <activity
+            android:name=".notice.StimeSet"
+            android:exported="true"/>
+        <activity
+            android:name=".notice.NoticeRe"
+            android:exported="true"/>
     </application>
 
 </manifest>

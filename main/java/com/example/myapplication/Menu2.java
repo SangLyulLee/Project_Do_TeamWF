@@ -1,17 +1,25 @@
 package com.example.myapplication;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.map.BusStop;
 import com.example.myapplication.map.BusTime;
+import com.example.myapplication.notice.StimeSet;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,6 +43,8 @@ public class Menu2 extends AppCompatActivity {
     private Date date = new Date();
     private int time_int;
     private String input_str;
+    private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+    FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +53,9 @@ public class Menu2 extends AppCompatActivity {
 
         final ArrayList<String> str = new ArrayList<String>();
         final ArrayList<String> str1_name = new ArrayList<String>();
-        ListView list2 = (ListView) findViewById(R.id.listView2_menu2);
+        ListView list = (ListView) findViewById(R.id.listView2_menu2);
         ListAdapter listAdapter = new ListAdapter();
-        list2.setAdapter(listAdapter);
+        list.setAdapter(listAdapter);
 
 
         Button imgButton = (Button) findViewById(R.id.refreshBtn);
@@ -181,6 +191,53 @@ public class Menu2 extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
 
+                    }
+                });
+
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        int position = i;
+                        AlertDialog.Builder dlg = new AlertDialog.Builder(Menu2.this);
+                        dlg.setTitle("버스 확인");
+                        dlg.setMessage("버스 번호 : "+input_str+"번\n"+"탑승 장소 : "+str1_name.get(position)+"\n알림 설정하려는 버스 정보가 맞습니까?");
+                        dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(Menu2.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+
+                                databaseReference = database.getReference().child("Notice");
+                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        boolean notice_c = true;
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                                                Toast.makeText(Menu2.this, "이미 알림이 있습니다. 알림 변경을 하시거나 취소해주세요.", Toast.LENGTH_SHORT).show();
+                                                notice_c = false;
+                                            }
+                                        }
+                                        if (notice_c) {
+                                            Intent intent = new Intent(Menu2.this, StimeSet.class);
+                                            intent.putExtra("busNum", Integer.parseInt(input_str));
+                                            intent.putExtra("s_pos", position);
+                                            startActivity(intent);
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                            }
+                        });
+                        dlg.show();
                     }
                 });
             }
