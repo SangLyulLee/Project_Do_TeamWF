@@ -1,7 +1,11 @@
 package com.example.myapplication.notice;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,8 +20,8 @@ import androidx.core.content.ContextCompat;
 import com.example.myapplication.ListAdapter;
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
-import com.example.myapplication.login.UserAccount;
 import com.example.myapplication.map.BusStop;
+import com.example.myapplication.map.BusTime;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -27,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class EbusSet extends AppCompatActivity {
     private ArrayList<BusStop> arrayList = new ArrayList<>();
@@ -34,7 +39,11 @@ public class EbusSet extends AppCompatActivity {
     private DatabaseReference databaseReference = database.getReference("BusStop");
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
-    private ArrayList<UserAccount> userArray  = new ArrayList<>();
+    private ArrayList<Integer> alarm_minArray = new ArrayList<>();
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+    private ArrayList<BusTime> busTimeArray = new ArrayList<>();
+    int sTime_m;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +54,17 @@ public class EbusSet extends AppCompatActivity {
         int s_pos = getIntent().getIntExtra("s_pos", 0);
         int sR_pos = getIntent().getIntExtra("sR_pos", 0);
 
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        final Calendar calendar = Calendar.getInstance();
+        final Intent my_intent = new Intent(EbusSet.this, Alarm_Reciver.class);
+
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // 파이어베이스 DB의 데이터를 받아옴
-                arrayList.clear();  // 기존 배열리스트 초기화
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {  // 반복문으로 데이터 리스트 추출
-                    BusStop busStop = snapshot.getValue(BusStop.class);     // 만들어둔 BusStop 객체에 데이터를 담음
-                    arrayList.add(busStop);     // 담은 데이터를 배열 리스트에 추가
+                arrayList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    BusStop busStop = snapshot.getValue(BusStop.class);
+                    arrayList.add(busStop);
                 }
 
             }
@@ -144,11 +156,93 @@ public class EbusSet extends AppCompatActivity {
                                             break;
                                         j++;
                                     }
+
+                                    // 알림 알람 설정
+                                    databaseReference = database.getReference("BusRoute").child("1").child("timer");
+                                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                            alarm_minArray.clear();
+                                            int alarm_min = 0;
+                                            int i=0;
+                                            String str_busNum;
+                                            for (DataSnapshot snapshot : dataSnapshot1.child(Integer.toString(busNum)).getChildren()) {
+                                                str_busNum = snapshot.getValue(String.class);
+
+                                                alarm_minArray.add(Integer.parseInt(str_busNum));
+                                                if (i == s_pos)
+                                                    sTime_m = Integer.parseInt(str_busNum)/60;
+                                                i++;
+                                            }
+                                            if (s_pos == 0) {
+                                                alarm_min = 3;
+                                            }
+                                            else {
+                                                alarm_min = (alarm_minArray.get(s_pos)/60) - (alarm_minArray.get(s_pos-1)/60);
+                                            }
+
+                                            databaseReference = database.getReference("BusTime").child(Integer.toString(busNum));
+                                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                    busTimeArray.clear();
+                                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                                        BusTime busTime = snapshot.getValue(BusTime.class);
+                                                        if (busTime.getMinutes()+sTime_m < 60)
+                                                            busTime.setMinutes(busTime.getMinutes()+sTime_m);
+                                                        else {
+                                                            busTime.setMinutes((busTime.getMinutes()+sTime_m)%60);
+                                                            busTime.setHours(busTime.getHours()+1);
+                                                        }
+                                                        busTimeArray.add(busTime);
+                                                    }
+                                                }
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                                }
+                                            });
+
+                                            calendar.setTimeInMillis(System.currentTimeMillis());
+                                            if (busTimeArray.size() != 0) {
+                                                if (busTimeArray.get(sR_pos).getMinutes() <= alarm_min) {
+                                                    calendar.set(Calendar.HOUR_OF_DAY, busTimeArray.get(sR_pos).getHours());
+                                                    calendar.set(Calendar.MINUTE, busTimeArray.get(sR_pos).getMinutes() - alarm_min);
+                                                }
+                                                else {
+                                                    calendar.set(Calendar.HOUR_OF_DAY, busTimeArray.get(sR_pos).getHours() - 1);
+                                                    calendar.set(Calendar.MINUTE, busTimeArray.get(sR_pos).getMinutes() + 60 - alarm_min);
+                                                }
+                                            }
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                pendingIntent = PendingIntent.getBroadcast(EbusSet.this, 0, my_intent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                                            }
+                                            else {
+                                                pendingIntent = PendingIntent.getBroadcast(EbusSet.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                            }
+
+                                            my_intent.putExtra("alarm_min", alarm_min);
+                                            my_intent.putExtra("sTime_m", sTime_m);
+                                            my_intent.putExtra("busNum", busNum);
+                                            my_intent.putExtra("sR_pos", sR_pos);
+                                            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000*60, pendingIntent);
+                                            /*
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                }
+                                                else {
+                                                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                }*/
+                                        }
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) { }
+                                    });
+
+                                    databaseReference = database.getReference().child("Notice");
                                     databaseReference.child(Integer.toString(j)).child("Uid").setValue(firebaseUser.getUid());
                                     databaseReference.child(Integer.toString(j)).child("BusNum").setValue(Integer.toString(busNum));
                                     databaseReference.child(Integer.toString(j)).child("BusTime").setValue(Integer.toString(sR_pos+1));
-                                    databaseReference.child(Integer.toString(j)).child("SbusStopNum").setValue(arrayList.get(s_pos).getBusStopNum());
-                                    databaseReference.child(Integer.toString(j)).child("EbusStopNum").setValue(arrayList.get(position).getBusStopNum());
+                                    databaseReference.child(Integer.toString(j)).child("SbusStopNum").setValue(str.get(s_pos));
+                                    databaseReference.child(Integer.toString(j)).child("EbusStopNum").setValue(str.get(position));
                                     databaseReference = database.getReference("member").child("UserAccount");
                                     final int pos = j;
                                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -160,20 +254,16 @@ public class EbusSet extends AppCompatActivity {
                                                     database.getReference("Notice").child(Integer.toString(pos)).child("u_type").setValue(snapshot.child("u_type").getValue(int.class));
                                                     Intent intent = new Intent(EbusSet.this, MainActivity.class);
                                                     startActivity(intent);
+                                                    finish();
                                                 }
                                             }
                                         }
-
                                         @Override
-                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                                        }
+                                        public void onCancelled(@NonNull DatabaseError databaseError) { }
                                     });
                                 }
-
                                 @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-
-                                }
+                                public void onCancelled(@NonNull DatabaseError error) { }
                             });
                         }
                     });

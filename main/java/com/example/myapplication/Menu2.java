@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.map.BusStop;
 import com.example.myapplication.map.BusTime;
+import com.example.myapplication.map.RouteMapActivity;
 import com.example.myapplication.notice.StimeSet;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -73,8 +74,14 @@ public class Menu2 extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
+        });
 
+        Button routeMap_btn = (Button) findViewById(R.id.routeMap_btn);
+        routeMap_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(Menu2.this, "노선 검색 후 이용해주세요", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -111,9 +118,7 @@ public class Menu2 extends AppCompatActivity {
                         }
                     }
                     @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
+                    public void onCancelled(@NonNull DatabaseError databaseError) { }
                 });
 
                 /* 시간 정보 */
@@ -145,9 +150,7 @@ public class Menu2 extends AppCompatActivity {
                         }
                     }
                     @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
+                    public void onCancelled(@NonNull DatabaseError databaseError) { }
                 });
 
                 databaseReference = database.getReference("BusTime").child(input_str);
@@ -169,12 +172,11 @@ public class Menu2 extends AppCompatActivity {
 
                         for (int i=0; i<busTimeArray.size(); i++) {
                             st_time = (busTimeArray.get(i).getHours()*60) + busTimeArray.get(i).getMinutes();
-                            if (time_int - st_time < 0) { continue; }
-                            else {
+                            if (time_int - st_time >= 0) {
                                 for (int j = 1; j < str.size(); j++) {
-                                    if (time_int - st_time < (Integer.parseInt(str.get(j))/60) && time_int - st_time >= (Integer.parseInt(str.get(j-1))/60)) {
+                                    if ((time_int - st_time < (Integer.parseInt(str.get(j))/60)) && (time_int - st_time >= (Integer.parseInt(str.get(j-1))/60))) {
                                         if (j == 1) {
-                                            listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
+                                            listAdapter.setListImg(0, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
                                             break;
                                         }
                                         else {
@@ -189,55 +191,66 @@ public class Menu2 extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
+                    public void onCancelled(@NonNull DatabaseError error) { }
                 });
 
                 list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         int position = i;
-                        AlertDialog.Builder dlg = new AlertDialog.Builder(Menu2.this);
-                        dlg.setTitle("버스 확인");
-                        dlg.setMessage("버스 번호 : "+input_str+"번\n"+"탑승 장소 : "+str1_name.get(position)+"\n알림 설정하려는 버스 정보가 맞습니까?");
-                        dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Toast.makeText(Menu2.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
+                        if (position == str1_name.size()-1) {
+                            Toast.makeText(Menu2.this, "마지막 정류장은 선택할 수 없습니다.\n 다시 선택해주세요.", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            AlertDialog.Builder dlg = new AlertDialog.Builder(Menu2.this);
+                            dlg.setTitle("버스 확인");
+                            dlg.setMessage("버스 번호 : " + input_str + "번\n" + "탑승 장소 : " + str1_name.get(position) + "\n알림 설정하려는 버스 정보가 맞습니까?");
+                            dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Toast.makeText(Menu2.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
 
 
-                                databaseReference = database.getReference().child("Notice");
-                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        boolean notice_c = true;
-                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                            if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
-                                                Toast.makeText(Menu2.this, "이미 알림이 있습니다. 알림 변경을 하시거나 취소해주세요.", Toast.LENGTH_SHORT).show();
-                                                notice_c = false;
+                                    databaseReference = database.getReference().child("Notice");
+                                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            boolean notice_c = true;
+                                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                                if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                                                    Toast.makeText(Menu2.this, "이미 알림이 있습니다. 알림 변경을 하시거나 취소해주세요.", Toast.LENGTH_SHORT).show();
+                                                    notice_c = false;
+                                                }
+                                            }
+                                            if (notice_c) {
+                                                Intent intent = new Intent(Menu2.this, StimeSet.class);
+                                                intent.putExtra("busNum", Integer.parseInt(input_str));
+                                                intent.putExtra("s_pos", position);
+                                                startActivity(intent);
+                                                finish();
                                             }
                                         }
-                                        if (notice_c) {
-                                            Intent intent = new Intent(Menu2.this, StimeSet.class);
-                                            intent.putExtra("busNum", Integer.parseInt(input_str));
-                                            intent.putExtra("s_pos", position);
-                                            startActivity(intent);
-                                        }
-                                    }
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
 
-                                    }
-                                });
-                            }
-                        });
-                        dlg.show();
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) { }
+                                    });
+                                }
+                            });
+                            dlg.show();
+                        }
+                    }
+                });
+                routeMap_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intentMap = new Intent(Menu2.this, RouteMapActivity.class);
+                        intentMap.putExtra("busNum", Integer.parseInt(input_str));
+                        startActivity(intentMap);
                     }
                 });
             }

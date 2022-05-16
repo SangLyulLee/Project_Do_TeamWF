@@ -1,7 +1,10 @@
 package com.example.myapplication;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.map.BusStop;
+import com.example.myapplication.notice.Alarm_Reciver;
 import com.example.myapplication.notice.Notice;
 import com.example.myapplication.notice.NoticeRe;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,11 +38,18 @@ public class Menu3 extends AppCompatActivity {
     private int sTimer, eTimer;
     private String sStopName, eStopName;
     private Notice notice = new Notice();
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu3);
+
+
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        final Intent my_intent = new Intent(Menu3.this, Alarm_Reciver.class);
+
         TextView sTextView = (TextView) findViewById(R.id.textView3);
         TextView eTextView = (TextView) findViewById(R.id.textView4);
         Button noticeR_btn = (Button) findViewById(R.id.menu3button1);
@@ -94,6 +105,16 @@ public class Menu3 extends AppCompatActivity {
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) { }
                         });
+
+                        if (alarmManager != null) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                pendingIntent = PendingIntent.getBroadcast(Menu3.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                            } else {
+                                pendingIntent = PendingIntent.getBroadcast(Menu3.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                            }
+                            alarmManager.cancel(pendingIntent);
+                        }
+
                         Toast.makeText(Menu3.this, "알림이 취소되었습니다.", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(Menu3.this, MainActivity.class);
                         startActivity(intent);

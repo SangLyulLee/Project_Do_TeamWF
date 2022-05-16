@@ -59,4 +59,16 @@
         app:layout_constraintVertical_bias="0.942"
         tools:ignore="SpeakableTextPresentCheck" />
 
+    <Button
+        android:id="@+id/routeMap_btn"
+        android:layout_width="209dp"
+        android:layout_height="64dp"
+        android:text="지도"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.301"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.943" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

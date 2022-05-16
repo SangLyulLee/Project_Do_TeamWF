@@ -27,7 +27,7 @@ import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
-public class MapActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener{
+public class MapActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
     private static final String LOG_TAG = "MainActivity";
     private MapView mapView;
     private ViewGroup mapViewContainer;
@@ -65,8 +65,7 @@ public class MapActivity extends AppCompatActivity implements MapView.CurrentLoc
                 }
             }
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
         });
     }
 
@@ -81,17 +80,15 @@ public class MapActivity extends AppCompatActivity implements MapView.CurrentLoc
         MapPoint.GeoCoordinate mapPointGeo = currentLocation.getMapPointGeoCoord();
         Log.i(LOG_TAG, String.format("MapView onCurrentLocationUpdate (%f,%f) accuracy (%f)", mapPointGeo.latitude, mapPointGeo.longitude, accuracyInMeters));
     }
-    @Override
-    public void onCurrentLocationDeviceHeadingUpdate(MapView mapView, float v) {
-    }
 
     @Override
-    public void onCurrentLocationUpdateFailed(MapView mapView) {
-    }
+    public void onCurrentLocationDeviceHeadingUpdate(MapView mapView, float v) { }
 
     @Override
-    public void onCurrentLocationUpdateCancelled(MapView mapView) {
-    }
+    public void onCurrentLocationUpdateFailed(MapView mapView) { }
+
+    @Override
+    public void onCurrentLocationUpdateCancelled(MapView mapView) { }
 
 
     private void onFinishReverseGeoCoding(String result) {

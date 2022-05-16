@@ -52,10 +52,9 @@ public class StimeSet extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int i=0;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    i++;
                     if (i == s_pos)
                         sTime_m = Integer.parseInt(snapshot.getValue(String.class))/60;
-
+                    i++;
                 }
             }
             @Override
@@ -116,6 +115,7 @@ public class StimeSet extends AppCompatActivity {
                             intent.putExtra("s_pos", s_pos);
                             intent.putExtra("sR_pos", position);
                             startActivity(intent);
+                            finish();
                         }
                     });
                     dlg.show();
