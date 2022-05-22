@@ -43,6 +43,7 @@ public class EbusSet extends AppCompatActivity {
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
     private ArrayList<BusTime> busTimeArray = new ArrayList<>();
+    private ArrayList<Integer> busSeatArray = new ArrayList<>();
     int sTime_m;
 
     @Override
@@ -68,11 +69,21 @@ public class EbusSet extends AppCompatActivity {
                 }
 
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
+        });
 
+        databaseReference = database.getReference("BusSeat").child(Integer.toString(busNum)).child(Integer.toString(sR_pos+1));
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                busSeatArray.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    busSeatArray.add(snapshot.getValue(Integer.class));
+                }
             }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
 
         ListView list = (ListView) findViewById(R.id.list_ebusSet);
@@ -107,13 +118,28 @@ public class EbusSet extends AppCompatActivity {
                 listAdapter.list_clear();
                 for (int i=0; i<str1_name.size(); i++) {
                     if (i == 0) {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i));
+                        if (busSeatArray.get(i) == 0) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                        else {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                        }
                     }
                     else if (i == str1_name.size()-1) {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i));
+                        if (busSeatArray.get(i) == 0) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                        else {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                        }
                     }
                     else {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i));
+                        if (busSeatArray.get(i) == 0) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                        else {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                        }
                     }
                 }
                 listAdapter.notifyDataSetChanged();
@@ -128,8 +154,19 @@ public class EbusSet extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 int position = i;
+                boolean seat_bool = false;
+                for (int seat_pos=s_pos; seat_pos<=position; seat_pos++) {
+                    if (busSeatArray.get(seat_pos) == 1) {
+                        seat_bool = true;
+                        break;
+                    }
+                }
+
                 if (s_pos >= position) {
                     Toast.makeText(EbusSet.this, "출발지 이후의 정류장을 선택해주세요.", Toast.LENGTH_SHORT).show();
+                }
+                else if (seat_bool) {
+                    Toast.makeText(EbusSet.this, "자리가 없습니다. 다시 선택해주세요.", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     AlertDialog.Builder dlg = new AlertDialog.Builder(EbusSet.this);
@@ -220,11 +257,13 @@ public class EbusSet extends AppCompatActivity {
                                                 pendingIntent = PendingIntent.getBroadcast(EbusSet.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
                                             }
 
+                                            /*
                                             my_intent.putExtra("alarm_min", alarm_min);
                                             my_intent.putExtra("sTime_m", sTime_m);
                                             my_intent.putExtra("busNum", busNum);
-                                            my_intent.putExtra("sR_pos", sR_pos);
-                                            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000*60, pendingIntent);
+                                            my_intent.putExtra("sR_pos", sR_pos);*/
+
+                                            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
                                             /*
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
@@ -236,6 +275,11 @@ public class EbusSet extends AppCompatActivity {
                                         @Override
                                         public void onCancelled(@NonNull DatabaseError error) { }
                                     });
+
+                                    databaseReference = database.getReference("BusSeat").child(Integer.toString(busNum)).child(Integer.toString(sR_pos+1));
+                                    for (int seat_pos=s_pos; seat_pos<=position; seat_pos++) {
+                                        databaseReference.child("route"+Integer.toString(seat_pos+1)).setValue(1);
+                                    }
 
                                     databaseReference = database.getReference().child("Notice");
                                     databaseReference.child(Integer.toString(j)).child("Uid").setValue(firebaseUser.getUid());

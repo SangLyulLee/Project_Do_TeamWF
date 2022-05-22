@@ -1,6 +1,5 @@
 package com.example.myapplication.notice;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -50,7 +49,7 @@ public class RingtonePlayingService extends Service {
             wakelock.release();
         }
         catch (Exception e){ e.printStackTrace(); }
-
+/*
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
 
@@ -66,7 +65,7 @@ public class RingtonePlayingService extends Service {
                     .setSmallIcon(R.mipmap.ic_launcher).build();
 
             startForeground(1, notification);
-        }
+        }*/
     }
 
     @Override
@@ -102,7 +101,7 @@ public class RingtonePlayingService extends Service {
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override

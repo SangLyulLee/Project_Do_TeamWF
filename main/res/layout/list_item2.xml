@@ -22,13 +22,20 @@
 
         <TextView
             android:id="@+id/textView2"
-            android:layout_width="291dp"
+            android:layout_width="220dp"
             android:layout_height="match_parent"
+            android:gravity="center_vertical"
             android:text="TextView"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:gravity="center_vertical"
             android:translationX="50dp" />
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:translationX="80dp" />
+
     </LinearLayout>
 
 
