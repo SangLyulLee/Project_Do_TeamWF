@@ -102,6 +102,16 @@ public class MainActivity extends AppCompatActivity {
                                 }
 
                                 final int pos = i;
+
+                                i = 0;
+                                for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
+                                    if (snapshot.child("SbusStopNum").getValue(String.class).equals(snapshot1.getValue(String.class))) {
+                                        break;
+                                    }
+                                    i++;
+                                }
+                                final int pos_s = i;
+
                                 mDatabaseRef = database.getReference("BusTime").child(snapshot.child("BusNum").getValue(String.class));
                                 mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
@@ -121,6 +131,121 @@ public class MainActivity extends AppCompatActivity {
                                                                 int time_int = (Integer.parseInt(simpleDateFormat.format(date))*60) + Integer.parseInt(simpleDateFormat2.format(date));
                                                                 if (eTime <= time_int) {
                                                                     database.getReference("Notice").child(snapshot.getKey()).removeValue();
+
+                                                                    for (int seat_pos = pos_s+1; seat_pos<=pos+1; seat_pos++) {
+                                                                        database.getReference("BusSeat")
+                                                                                .child(snapshot.child("BusNum").getValue(String.class))
+                                                                                .child(snapshot.child("BusTime").getValue(String.class))
+                                                                                .child("route" + Integer.toString(seat_pos)).setValue(0);
+                                                                    }
+
+                                                                    if (alarmManager != null) {
+                                                                        Intent my_intent = new Intent(MainActivity.this, Alarm_Reciver.class);
+                                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                                            pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                                                                        } else {
+                                                                            pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                                                        }
+                                                                        alarmManager.cancel(pendingIntent);
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    /* 알림 확인 버튼 활성화 */
+                                                                    Button button3 = (Button) findViewById(R.id.button3);
+                                                                    button3.setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            Intent intent = new Intent(MainActivity.this, Menu3.class);
+                                                                            intent.putExtra("noticeKey", snapshot.getKey());
+                                                                            startActivity(intent);
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                            j++;
+                                                        }
+                                                    }
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                                });
+                                            }
+                                            j++;
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                });
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        mDatabaseRef = database.getReference("Notice");
+        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
+                        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(snapshot.child("BusNum").getValue(String.class));
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                int i = 0;
+                                for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
+                                    if (snapshot.child("EbusStopNum").getValue(String.class).equals(snapshot1.getValue(String.class))) {
+                                        break;
+                                    }
+                                    i++;
+                                }
+
+                                final int pos = i;
+
+                                i = 0;
+                                for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
+                                    if (snapshot.child("SbusStopNum").getValue(String.class).equals(snapshot1.getValue(String.class))) {
+                                        break;
+                                    }
+                                    i++;
+                                }
+                                final int pos_s = i;
+
+                                mDatabaseRef = database.getReference("BusTime").child(snapshot.child("BusNum").getValue(String.class));
+                                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot2) {
+                                        int j=1;
+                                        for (DataSnapshot snapshot2 : dataSnapshot2.getChildren()) {
+                                            if (j == Integer.parseInt(snapshot.child("BusTime").getValue(String.class))) {
+                                                BusTime busTime = snapshot2.getValue(BusTime.class);
+                                                mDatabaseRef = database.getReference("BusRoute").child("1").child("timer").child(snapshot.child("BusNum").getValue(String.class));
+                                                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                                        int j = 0;
+                                                        for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
+                                                            if (j == pos) {
+                                                                int eTime = (busTime.getHours()*60) + busTime.getMinutes() + (Integer.parseInt(snapshot1.getValue(String.class))/60);
+                                                                int time_int = (Integer.parseInt(simpleDateFormat.format(date))*60) + Integer.parseInt(simpleDateFormat2.format(date));
+                                                                if (eTime <= time_int) {
+                                                                    database.getReference("Notice").child(snapshot.getKey()).removeValue();
+
+                                                                    for (int seat_pos = pos_s+1; seat_pos<=pos+1; seat_pos++) {
+                                                                        database.getReference("BusSeat")
+                                                                                .child(snapshot.child("BusNum").getValue(String.class))
+                                                                                .child(snapshot.child("BusTime").getValue(String.class))
+                                                                                .child("route" + Integer.toString(seat_pos)).setValue(0);
+                                                                    }
 
                                                                     if (alarmManager != null) {
                                                                         Intent my_intent = new Intent(MainActivity.this, Alarm_Reciver.class);

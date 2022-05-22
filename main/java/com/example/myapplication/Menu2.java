@@ -139,13 +139,13 @@ public class Menu2 extends AppCompatActivity {
                         listAdapter.list_clear();
                         for (int i=0; i<str1_name.size(); i++) {
                             if (i == 0) {
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i));
+                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                             }
                             else if (i == str1_name.size()-1) {
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i));
+                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                             }
                             else {
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i));
+                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                             }
                         }
                     }
@@ -173,9 +173,9 @@ public class Menu2 extends AppCompatActivity {
                         for (int i=0; i<busTimeArray.size(); i++) {
                             st_time = (busTimeArray.get(i).getHours()*60) + busTimeArray.get(i).getMinutes();
                             if (time_int - st_time >= 0) {
-                                for (int j = 1; j < str.size(); j++) {
+                                for (int j = 0; j < str.size(); j++) {
                                     if ((time_int - st_time < (Integer.parseInt(str.get(j))/60)) && (time_int - st_time >= (Integer.parseInt(str.get(j-1))/60))) {
-                                        if (j == 1) {
+                                        if (j == 0) {
                                             listAdapter.setListImg(0, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
                                             break;
                                         }
@@ -256,6 +256,7 @@ public class Menu2 extends AppCompatActivity {
             }
         });
 
+        /* 새로고침 버튼 */
         imgButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -268,13 +269,13 @@ public class Menu2 extends AppCompatActivity {
                 listAdapter.list_clear();
                 for (int i=0; i<str1_name.size(); i++) {
                     if (i == 0) {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i));
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                     }
                     else if (i == str1_name.size()-1) {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i));
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                     }
                     else {
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i));
+                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                     }
                 }
 

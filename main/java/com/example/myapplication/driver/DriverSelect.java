@@ -24,7 +24,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class DriverSelect extends AppCompatActivity {
     private ArrayList<BusTime> busTimeArray = new ArrayList<>();
@@ -34,6 +36,9 @@ public class DriverSelect extends AppCompatActivity {
     private Intent intent;
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
+    private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
+    private Date date = new Date();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,43 +77,53 @@ public class DriverSelect extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         int position = i;
-                        AlertDialog.Builder dlg = new AlertDialog.Builder(DriverSelect.this);
-                        dlg.setTitle("버스 확인");
-                        dlg.setMessage("버스 번호 : "+input_str+"번\n"+"출발 시간 : "+busTimeArray.get(position).getHours()+"시 "+busTimeArray.get(position).getMinutes()+"분\n입력하신 정보가 맞습니까?");
-                        dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Toast.makeText(DriverSelect.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Toast.makeText(DriverSelect.this, "확인하였습니다.", Toast.LENGTH_SHORT).show();
 
-                                databaseReference = database.getReference().child("Driver");
-                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        int j=0;
-                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) { j++; }
-                                        databaseReference.child(Integer.toString(j)).child("uid").setValue(firebaseUser.getUid());
-                                        databaseReference.child(Integer.toString(j)).child("busNum").setValue(input_str);
-                                        databaseReference.child(Integer.toString(j)).child("hours").setValue(busTimeArray.get(position).getHours());
-                                        databaseReference.child(Integer.toString(j)).child("minutes").setValue(busTimeArray.get(position).getMinutes());
-                                    }
 
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
+                        String time_hours = simpleDateFormat.format(date);
+                        String time_minutes = simpleDateFormat2.format(date);
+                        int n_time = (Integer.parseInt(time_hours)*60) + Integer.parseInt(time_minutes);
+                        int s_time = (busTimeArray.get(position).getHours()*60) + busTimeArray.get(position).getMinutes();
 
-                                    }
-                                });
+                        if (n_time < s_time) {
+                            AlertDialog.Builder dlg = new AlertDialog.Builder(DriverSelect.this);
+                            dlg.setTitle("버스 확인");
+                            dlg.setMessage("버스 번호 : " + input_str + "번\n" + "출발 시간 : " + busTimeArray.get(position).getHours() + "시 " + busTimeArray.get(position).getMinutes() + "분\n입력하신 정보가 맞습니까?");
+                            dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Toast.makeText(DriverSelect.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Toast.makeText(DriverSelect.this, "확인하였습니다.", Toast.LENGTH_SHORT).show();
 
-                                intent = new Intent(DriverSelect.this, DriverMain.class);
-                                startActivity(intent);
-                            }
-                        });
-                        dlg.show();
+                                    databaseReference = database.getReference().child("Driver");
+                                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            int j = 0;
+                                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                                j++;
+                                            }
+                                            databaseReference.child(Integer.toString(j)).child("Uid").setValue(firebaseUser.getUid());
+                                            databaseReference.child(Integer.toString(j)).child("BusNum").setValue(input_str);
+                                            databaseReference.child(Integer.toString(j)).child("BusTime").setValue(Integer.toString(position+1));
+                                        }
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) { }
+                                    });
+
+                                    intent = new Intent(DriverSelect.this, DriverMain.class);
+                                    startActivity(intent);
+                                }
+                            });
+                            dlg.show();
+                        }
+                        else {
+                            Toast.makeText(DriverSelect.this, "운행 시간이 지났습니다. 다시 선택해주세요.", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             }

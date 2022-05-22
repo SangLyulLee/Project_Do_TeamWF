@@ -6,6 +6,12 @@ public class Route_list {
     private Drawable route_image;
     private String route_text;
 
+    public Drawable getRoute_image2() { return route_image2; }
+
+    public void setRoute_image2(Drawable route_image2) { this.route_image2 = route_image2; }
+
+    private Drawable route_image2;
+
     public String getRoute_text() {
         return route_text;
     }

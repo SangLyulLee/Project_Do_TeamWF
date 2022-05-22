@@ -46,7 +46,7 @@ public class StimeSet extends AppCompatActivity {
         list.setAdapter(adapter);
 
 
-        databaseReference = database.getReference("BusRoute").child(Integer.toString(busNum)).child("timer").child("1");
+        databaseReference = database.getReference("BusRoute").child("1").child("timer").child(Integer.toString(busNum));
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

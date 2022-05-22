@@ -43,25 +43,26 @@ public class ListAdapter extends BaseAdapter {
         }
         ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView2);
         TextView route_text = (TextView) convertView.findViewById(R.id.textView2);
+        ImageView imageView2 = (ImageView) convertView.findViewById(R.id.imageView4);
 
         imageView.setImageDrawable(route_list.get(finalPosition).getRoute_image());
         route_text.setText(route_list.get(finalPosition).getRoute_text());
+        imageView2.setImageDrawable(route_list.get(finalPosition).getRoute_image2());
 
         return convertView;
     }
 
-    public void addList(Drawable img, String text) {
+    public void addList(Drawable img, String text, Drawable img2) {
         Route_list routeList = new Route_list();
 
         routeList.setRoute_image(img);
         routeList.setRoute_text(text);
+        routeList.setRoute_image2(img2);
 
         route_list.add(routeList);
     }
 
-    public void setListImg(int i, Drawable img) {
-        route_list.get(i).setRoute_image(img);
-    }
+    public void setListImg(int i, Drawable img) { route_list.get(i).setRoute_image(img); }
 
     public void list_clear() {
         route_list.clear();

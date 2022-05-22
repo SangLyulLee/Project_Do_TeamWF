@@ -46,7 +46,6 @@ public class Menu3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu3);
 
-
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         final Intent my_intent = new Intent(Menu3.this, Alarm_Reciver.class);
 
@@ -95,12 +94,43 @@ public class Menu3 extends AppCompatActivity {
                 dlg_noticeC.setNegativeButton("예", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        String noKey = getIntent().getStringExtra("noticeKey");
                         mDatabaseRef = database.getReference("Notice");
                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                String noKey = getIntent().getStringExtra("noticeKey");
-                                mDatabaseRef.child(noKey).removeValue();
+                                mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(dataSnapshot.child(noKey).child("BusNum").getValue(String.class));
+                                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                                        int i = 0;
+                                        for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
+                                            if (dataSnapshot.child(noKey).child("EbusStopNum").getValue(String.class).equals(snapshot1.getValue(String.class)))
+                                                break;
+                                            i++;
+                                        }
+                                        int pos = i;
+
+                                        i = 0;
+                                        for (DataSnapshot snapshot2 : dataSnapshot1.getChildren()) {
+                                            if (dataSnapshot.child(noKey).child("SbusStopNum").getValue(String.class).equals(snapshot2.getValue(String.class)))
+                                                break;
+                                            i++;
+                                        }
+                                        int pos_s = i;
+
+                                        for (int seat_pos = pos_s + 1; seat_pos <= pos + 1; seat_pos++) {
+                                            database.getReference("BusSeat")
+                                                    .child(dataSnapshot.child(noKey).child("BusNum").getValue(String.class))
+                                                    .child(dataSnapshot.child(noKey).child("BusTime").getValue(String.class))
+                                                    .child("route"+Integer.toString(seat_pos)).setValue(0);
+                                        }
+
+                                        database.getReference("Notice").child(noKey).removeValue();
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                });
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) { }
