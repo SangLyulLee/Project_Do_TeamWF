@@ -241,7 +241,7 @@ public class EbusSet extends AppCompatActivity {
 
                                             calendar.setTimeInMillis(System.currentTimeMillis());
                                             if (busTimeArray.size() != 0) {
-                                                if (busTimeArray.get(sR_pos).getMinutes() <= alarm_min) {
+                                                if (busTimeArray.get(sR_pos).getMinutes() >= alarm_min) {
                                                     calendar.set(Calendar.HOUR_OF_DAY, busTimeArray.get(sR_pos).getHours());
                                                     calendar.set(Calendar.MINUTE, busTimeArray.get(sR_pos).getMinutes() - alarm_min);
                                                 }

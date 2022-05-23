@@ -35,15 +35,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.936" />
 
-    <TextView
-        android:id="@+id/text_noticeimg"
-        android:layout_width="318dp"
-        android:layout_height="365dp"
-        android:text=""
+    <ImageView
+        android:id="@+id/driver_image"
+        android:layout_width="303dp"
+        android:layout_height="367dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.426" />
+        app:layout_constraintVertical_bias="0.434"
+        app:srcCompat="@drawable/non" />
 </androidx.constraintlayout.widget.ConstraintLayout>

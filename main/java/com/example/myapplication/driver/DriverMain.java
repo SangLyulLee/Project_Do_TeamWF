@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,8 +25,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DriverMain extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -40,12 +45,17 @@ public class DriverMain extends AppCompatActivity {
     private AlarmManager alarmManager;
     private ArrayList<PendingIntent> pendingIntentArray = new ArrayList<>();
     private int alarm_num, s_time;
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
+    private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
+    Date date = new Date();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.driver_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        ImageView driver_image = (ImageView) findViewById(R.id.driver_image);
 
         s_time = 3;
         alarm_num = 0;
@@ -111,7 +121,32 @@ public class DriverMain extends AppCompatActivity {
                 noticeArray.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Notice notice = snapshot.getValue(Notice.class);
+
                     if (notice.getBusNum().equals(driver.getBusNum()) && notice.getBusTime().equals(driver.getBusTime())) {
+                        Timer timer2 = new Timer();
+                        TimerTask timerTask2 = new TimerTask() {
+                            @Override
+                            public void run() {
+                                driver_image.setImageResource(R.drawable.non);
+                            }
+                        };
+
+                        Timer timer = new Timer();
+                        TimerTask timerTask = new TimerTask() {
+                            @Override
+                            public void run() {
+                                switch (notice.getU_type()) {
+                                    case 1:
+                                        //driver_image.setImageResource(R.drawable.non);
+                                        break;
+                                    case 2:
+                                        //driver_image.setImageResource(R.drawable.non);
+                                        break;
+                                }
+                                timer2.schedule(timerTask2, 4900, 0);
+                            }
+                        };
+
                         // 탑승 알람 추가
                         for (int i=0; i<routeArray.size(); i++) {
                             if (notice.getSbusStopNum().equals(routeArray.get(i))) {
@@ -119,19 +154,25 @@ public class DriverMain extends AppCompatActivity {
                                     s_time = 3;
                                 }
                                 else {
-                                    s_time = Integer.parseInt(timerArray.get(i)) / 60;
+                                    s_time = (Integer.parseInt(timerArray.get(i)) / 60) - (Integer.parseInt(timerArray.get(i-1)) / 60);
                                 }
                             }
                             break;
                         }
 
-                        busTime.setHours(busTime.getHours() + (busTime.getMinutes()+s_time/60));
-                        busTime.setMinutes((busTime.getMinutes()+s_time) % 60);
+                        if (busTime.getMinutes() >= s_time) {
+                            busTime.setMinutes(busTime.getMinutes() - s_time);
+                        }
+                        else {
+                            busTime.setHours(busTime.getHours() - 1);
+                            busTime.setMinutes(busTime.getMinutes() + 60 - s_time);
+                        }
 
                         calendar.setTimeInMillis(System.currentTimeMillis());
                         calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
                         calendar.set(Calendar.MINUTE, busTime.getMinutes());
 
+                        my_intent.putExtra("uType", notice.getU_type());
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             pendingIntentArray.add(PendingIntent.getBroadcast(DriverMain.this, alarm_num, my_intent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
                         }
@@ -140,6 +181,11 @@ public class DriverMain extends AppCompatActivity {
                         }
 
                         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntentArray.get(alarm_num++));
+
+                        String time_hours = simpleDateFormat.format(date);
+                        String time_minutes = simpleDateFormat2.format(date);
+                        int timerTime = (busTime.getMinutes() + (busTime.getHours()*60)) - ((Integer.parseInt(time_hours)*60)+Integer.parseInt(time_minutes));
+                        timer.schedule(timerTask, timerTime*60*1000, 0);
 
                         // 도착 알람 추가
                         for (int i=0; i<routeArray.size(); i++) {

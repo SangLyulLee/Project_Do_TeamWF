@@ -85,6 +85,7 @@ public class Driver_Service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        /*
         mDatabaseRef = database.getReference("Notice");
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -100,11 +101,45 @@ public class Driver_Service extends Service {
             public void onCancelled(@NonNull DatabaseError error) { }
         });
 
-
         String time_hours = simpleDateFormat.format(date);
         String time_minutes = simpleDateFormat2.format(date);
+        int nTime = Integer.parseInt(time_hours)*60 + Integer.parseInt(time_minutes);
         for (int i=0; i<noticeArray.size(); i++) {
-            if (noticeArray.get(i).getSbusStopNum())
+            for (int j=0; j<busRouteArray.size(); j++) {
+                if (noticeArray.get(i).getSbusStopNum().equals(busRouteArray.get(j))) {
+                    int pos_i = i;
+                    int pos_j = j;
+                    database.getReference("BusRoute").child("1").child("timer").child(driver.getBusNum()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            int k = 0;
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                if (k == pos_j) {
+                                    int sStop_time = (busTime.getHours()*60)+(busTime.getMinutes())+(Integer.parseInt(snapshot.getValue(String.class))/60);
+                                    if (sStop_time - nTime > 0 && sStop_time - nTime <= Integer.parseInt(snapshot.getValue(String.class))) {
+                                        int noticeType = noticeArray.get(pos_i).getU_type();
+                                        if (noticeType == 1) {
+
+                                        }
+                                    }
+                                }
+                                k++;
+                            }
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) { }
+                    });
+                }
+            }
+        }
+        */
+
+        int uType = intent.getIntExtra("uType", 0);
+        switch(uType) {
+            case 1:
+
+                DriverMain.
+            case 2:
         }
         return super.onStartCommand(intent, flags, startId);
     }
