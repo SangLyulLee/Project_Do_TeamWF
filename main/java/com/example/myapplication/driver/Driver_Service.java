@@ -1,38 +1,25 @@
 package com.example.myapplication.driver;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.Vibrator;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
-import com.example.myapplication.map.BusTime;
-import com.example.myapplication.notice.Notice;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import com.example.myapplication.MainActivity;
+import com.example.myapplication.R;
 
 public class Driver_Service extends Service {
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private DatabaseReference mDatabaseRef;
-    private ArrayList<Notice> noticeArray = new ArrayList<>();
-    private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
-    private FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
-    private Driver driver = new Driver();
-    private BusTime busTime = new BusTime();
-    private ArrayList<String> busRouteArray = new ArrayList<>();
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
-    private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
-    private Date date = new Date();
+    MediaPlayer mediaPlayer;
 
     @Nullable
     @Override
@@ -43,70 +30,44 @@ public class Driver_Service extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        mDatabaseRef = database.getReference("Driver");
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
-                        driver = snapshot.getValue(Driver.class);
-                        break;
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        mDatabaseRef = database.getReference("BusTime").child(driver.getBusNum()).child(driver.getBusTime());
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                busTime = dataSnapshot.getValue(BusTime.class);
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(driver.getBusNum());
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                busRouteArray.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    busRouteArray.add(snapshot.getValue(String.class));
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mDatabaseRef = database.getReference("Notice");
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                noticeArray.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if (snapshot.child("BusNum").getValue(String.class).equals(driver.getBusNum())
-                            && snapshot.child("BusTime").getValue(String.class).equals(driver.getBusTime()))
-                        noticeArray.add(snapshot.getValue(Notice.class));
-                }
+        if( Build.VERSION.SDK_INT >= 26 )
+        {
+            Intent clsIntent = new Intent( this, MainActivity.class );
+            PendingIntent pendingIntent;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                pendingIntent = PendingIntent.getBroadcast(this, 0, clsIntent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
+            else {
+                pendingIntent = PendingIntent.getBroadcast(this, 0, clsIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            }
 
+            NotificationCompat.Builder clsBuilder;
+            String CHANNEL_ID = "0";
+            NotificationChannel clsChannel = new NotificationChannel(CHANNEL_ID, "앱", NotificationManager.IMPORTANCE_DEFAULT);
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(clsChannel);
 
-        String time_hours = simpleDateFormat.format(date);
-        String time_minutes = simpleDateFormat2.format(date);
-        for (int i=0; i<noticeArray.size(); i++) {
-            if (noticeArray.get(i).getSbusStopNum())
+            clsBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
+            clsBuilder.setSmallIcon(R.drawable.logo)
+                    .setContentTitle("DO! 알림")
+                    .setContentText("다음 정류장에서 장애인이 탑승할 예정입니다")
+                    .setContentIntent(pendingIntent);
+
+            startForeground(1, clsBuilder.build());
         }
-        return super.onStartCommand(intent, flags, startId);
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(2000);
+        /*
+        mediaPlayer = MediaPlayer.create(this, R.raw.sound);
+        mediaPlayer.start();
+        */
+        Toast.makeText(this, "잠시 후 장애인이 탑승할 예정입니다.", Toast.LENGTH_SHORT).show();
+
+        return START_NOT_STICKY;
     }
 
     @Override

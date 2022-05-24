@@ -241,7 +241,7 @@ public class EbusSet extends AppCompatActivity {
 
                                             calendar.setTimeInMillis(System.currentTimeMillis());
                                             if (busTimeArray.size() != 0) {
-                                                if (busTimeArray.get(sR_pos).getMinutes() <= alarm_min) {
+                                                if (busTimeArray.get(sR_pos).getMinutes() >= alarm_min) {
                                                     calendar.set(Calendar.HOUR_OF_DAY, busTimeArray.get(sR_pos).getHours());
                                                     calendar.set(Calendar.MINUTE, busTimeArray.get(sR_pos).getMinutes() - alarm_min);
                                                 }
@@ -263,7 +263,13 @@ public class EbusSet extends AppCompatActivity {
                                             my_intent.putExtra("busNum", busNum);
                                             my_intent.putExtra("sR_pos", sR_pos);*/
 
-                                            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                            if (Build.VERSION.SDK_INT >= 23) {
+                                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+                                            }
+                                            else {
+                                                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                            }
                                             /*
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);

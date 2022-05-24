@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-import com.example.myapplication.notice.RingtonePlayingService;
-
 public class Driver_Alarm extends BroadcastReceiver {
 
     @Override
