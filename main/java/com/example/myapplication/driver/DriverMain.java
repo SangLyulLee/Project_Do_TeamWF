@@ -6,8 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,7 +45,7 @@ public class DriverMain extends AppCompatActivity {
     PendingIntent pendingIntent;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
     private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
-    int i_pos = 0, uType = 0, sType = 0;
+    int i_pos, uType, sType, drv_pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,51 +59,72 @@ public class DriverMain extends AppCompatActivity {
         final Calendar calendar = Calendar.getInstance();
         final Intent my_intent = new Intent(DriverMain.this, Driver_Alarm.class);
 
+        i_pos = 0;
+        uType = 0;
+        sType = 0;
+        drv_pos = 0;
+
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (snapshot.child("Uid").equals(mFirebaseAuth.getUid())) {
                         driver = snapshot.getValue(Driver.class);
+
+                        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(driver.getBusNum());
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                routeArray.clear();
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    routeArray.add(snapshot.getValue(String.class));
+                                }
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+
+                        mDatabaseRef = database.getReference("BusRoute").child("1").child("timer").child(driver.getBusNum());
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                timerArray.clear();
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    timerArray.add(snapshot.getValue(String.class));
+                                }
+                                Timer timer_end = new Timer();
+                                TimerTask ttend = new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        database.getReference("driver").child(Integer.toString(drv_pos)).removeValue();
+                                        Toast.makeText(DriverMain.this, "운행을 종료합니다.", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                };
+                                Date date2 = new Date();
+                                String time_hours = simpleDateFormat.format(date2);
+                                String time_minutes = simpleDateFormat2.format(date2);
+                                int end_ttime = (busTime.getHours()*60) + busTime.getMinutes() + (Integer.parseInt(timerArray.get(timerArray.size()-1))/60);
+                                timer_end.schedule(ttend, (end_ttime - (Integer.parseInt(time_hours) * 60 + Integer.parseInt(time_minutes)))*60*1000, 0);
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+
+                        mDatabaseRef = database.getReference("BusTime").child(driver.getBusNum()).child(driver.getBusTime());
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                busTime = dataSnapshot.getValue(BusTime.class);
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+
                         break;
                     }
+                    drv_pos++;
                 }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(driver.getBusNum());
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                routeArray.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    routeArray.add(snapshot.getValue(String.class));
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        mDatabaseRef = database.getReference("BusRoute").child("1").child("timer").child(driver.getBusNum());
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                timerArray.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    timerArray.add(snapshot.getValue(String.class));
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        mDatabaseRef = database.getReference("BusTime").child(driver.getBusNum()).child(driver.getBusTime());
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                busTime = dataSnapshot.getValue(BusTime.class);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
@@ -226,7 +250,7 @@ public class DriverMain extends AppCompatActivity {
             TimerTask timerTask2 = new TimerTask() {
                 @Override
                 public void run() {
-                    driver_image.setImageResource(R.drawable.non);
+                    driver_image.setImageResource(R.drawable.driver_non);
                 }
             };
             Timer timer2 = new Timer();
@@ -318,7 +342,7 @@ public class DriverMain extends AppCompatActivity {
                             }
                             break;
                         default:
-                            driver_image.setImageResource(R.drawable.non);
+                            driver_image.setImageResource(R.drawable.driver_non);
                             break;
                     }
 
@@ -348,7 +372,13 @@ public class DriverMain extends AppCompatActivity {
             Date date = new Date();
             String time_hours = simpleDateFormat.format(date);
             String time_minutes = simpleDateFormat2.format(date);
-            int timer_time = (busTime.getHours()*60 + busTime.getMinutes() + Integer.parseInt(timerArray.get(i))/60) - (Integer.parseInt(time_hours)*60 + Integer.parseInt(time_minutes));
+            int timer_time;
+            if (i == 0) {
+                timer_time = 0;
+            }
+            else {
+                timer_time = (busTime.getHours() * 60 + busTime.getMinutes() + Integer.parseInt(timerArray.get(i - 1)) / 60) - (Integer.parseInt(time_hours) * 60 + Integer.parseInt(time_minutes));
+            }
             timer.schedule(timerTask, timer_time*60*1000, 0);
         }
 /*
@@ -471,6 +501,12 @@ public class DriverMain extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });*/
-    }
+        Button seat_btn = (Button) findViewById(R.id.btn_seat);
+        seat_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+            }
+        });
+    }
 }

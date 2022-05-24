@@ -45,6 +45,37 @@ public class DriverSelect extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.driver_select);
 
+        databaseReference = database.getReference("Driver");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
+                        AlertDialog.Builder dlg_start = new AlertDialog.Builder(DriverSelect.this);
+                        dlg_start.setTitle("버스 등록 확인");
+                        dlg_start.setMessage("이미 운행 중인 버스가 있습니다. 다시 고르시겠습니까?");
+                        dlg_start.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                intent = new Intent(DriverSelect.this, DriverMain.class);
+                                startActivity(intent);
+                            }
+                        });
+                        dlg_start.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                databaseReference.child(snapshot.getKey()).removeValue();
+                            }
+                        });
+                        dlg_start.show();
+                        break;
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+
         ListView list = (ListView) findViewById(R.id.list_bus);
         DriverAdapter adapter = new DriverAdapter();
         list.setAdapter(adapter);
@@ -99,7 +130,7 @@ public class DriverSelect extends AppCompatActivity {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     Toast.makeText(DriverSelect.this, "확인하였습니다.", Toast.LENGTH_SHORT).show();
 
-                                    databaseReference = database.getReference().child("Driver");
+                                    databaseReference = database.getReference("Driver");
                                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
