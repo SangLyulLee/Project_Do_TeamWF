@@ -263,7 +263,13 @@ public class EbusSet extends AppCompatActivity {
                                             my_intent.putExtra("busNum", busNum);
                                             my_intent.putExtra("sR_pos", sR_pos);*/
 
-                                            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                            if (Build.VERSION.SDK_INT >= 23) {
+                                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+                                            }
+                                            else {
+                                                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                            }
                                             /*
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);

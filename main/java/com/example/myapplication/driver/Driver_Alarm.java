@@ -12,9 +12,6 @@ public class Driver_Alarm extends BroadcastReceiver {
 
         Intent service_intent = new Intent(context, Driver_Service.class);
 
-        int uType = intent.getIntExtra("uType", 0);
-        service_intent.putExtra("uType", uType);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(service_intent);
         }

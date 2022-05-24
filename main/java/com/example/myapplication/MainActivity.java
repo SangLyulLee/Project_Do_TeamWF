@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TextView textView = (TextView) findViewById(R.id.textView);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
         Button button1 = (Button) findViewById(R.id.button1);
         Button button2 = (Button) findViewById(R.id.button2);

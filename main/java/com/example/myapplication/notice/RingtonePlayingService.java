@@ -6,7 +6,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -21,9 +20,6 @@ import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 
 public class RingtonePlayingService extends Service {
-    MediaPlayer mediaPlayer;
-    int startId;
-    boolean isRunning;
     private static final String TAG = RingtonePlayingService.class.getSimpleName();
 
     @Nullable
@@ -101,7 +97,7 @@ public class RingtonePlayingService extends Service {
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
