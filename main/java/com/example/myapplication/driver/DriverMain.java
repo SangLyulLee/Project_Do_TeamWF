@@ -19,6 +19,7 @@ import com.example.myapplication.R;
 import com.example.myapplication.map.BusTime;
 import com.example.myapplication.notice.Notice;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,6 +36,7 @@ import java.util.TimerTask;
 public class DriverMain extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+    FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private DatabaseReference mDatabaseRef = database.getReference("Driver");
     private Driver driver = new Driver();
     private ArrayList<Notice> noticeArray = new ArrayList<>();
@@ -54,22 +56,31 @@ public class DriverMain extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         ImageView driver_image = (ImageView) findViewById(R.id.driver_image);
+        driver_image.setImageResource(R.drawable.driver_non);
 
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         final Calendar calendar = Calendar.getInstance();
         final Intent my_intent = new Intent(DriverMain.this, Driver_Alarm.class);
 
-        i_pos = 0;
-        uType = 0;
-        sType = 0;
         drv_pos = 0;
 
+        Button seat_btn = (Button) findViewById(R.id.btn_seat);
+        seat_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(DriverMain.this, "wait...", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mDatabaseRef = database.getReference("Driver");
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if (snapshot.child("Uid").equals(mFirebaseAuth.getUid())) {
-                        driver = snapshot.getValue(Driver.class);
+                    if ((firebaseUser.getUid()).equals(snapshot.child("Uid").getValue(String.class))) {
+                        driver.setBusNum(snapshot.child("BusNum").getValue(String.class));
+                        driver.setBusTime(snapshot.child("BusTime").getValue(String.class));
+                        driver.setUid(snapshot.child("Uid").getValue(String.class));
 
                         Button seat_btn = (Button) findViewById(R.id.btn_seat);
                         seat_btn.setOnClickListener(new View.OnClickListener() {
@@ -95,6 +106,16 @@ public class DriverMain extends AppCompatActivity {
                             public void onCancelled(@NonNull DatabaseError error) { }
                         });
 
+                        mDatabaseRef = database.getReference("BusTime").child(driver.getBusNum()).child(driver.getBusTime());
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                busTime = dataSnapshot.getValue(BusTime.class);
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
+
                         mDatabaseRef = database.getReference("BusRoute").child("1").child("timer").child(driver.getBusNum());
                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -107,26 +128,27 @@ public class DriverMain extends AppCompatActivity {
                                 TimerTask ttend = new TimerTask() {
                                     @Override
                                     public void run() {
-                                        database.getReference("driver").child(Integer.toString(drv_pos)).removeValue();
                                         Toast.makeText(DriverMain.this, "운행을 종료합니다.", Toast.LENGTH_SHORT).show();
+                                        database.getReference("driver").child(Integer.toString(drv_pos)).removeValue();
                                         finish();
                                     }
                                 };
-                                Date date2 = new Date();
-                                String time_hours = simpleDateFormat.format(date2);
-                                String time_minutes = simpleDateFormat2.format(date2);
-                                int end_ttime = (busTime.getHours()*60) + busTime.getMinutes() + (Integer.parseInt(timerArray.get(timerArray.size()-1))/60);
-                                timer_end.schedule(ttend, (end_ttime - (Integer.parseInt(time_hours) * 60 + Integer.parseInt(time_minutes)))*60*1000, 0);
-                            }
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) { }
-                        });
 
-                        mDatabaseRef = database.getReference("BusTime").child(driver.getBusNum()).child(driver.getBusTime());
-                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                busTime = dataSnapshot.getValue(BusTime.class);
+                                calendar.setTimeInMillis(System.currentTimeMillis());
+                                if (timerArray.size() != 0) {
+                                    int eTimer_min = Integer.parseInt(timerArray.get(timerArray.size()-1))/60;
+                                    if (eTimer_min + busTime.getMinutes() < 60) {
+                                        calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
+                                        calendar.set(Calendar.MINUTE, busTime.getMinutes() + eTimer_min);
+                                    }
+                                    else {
+                                        calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours() + 1);
+                                        calendar.set(Calendar.MINUTE, busTime.getMinutes() + eTimer_min - 60);
+                                    }
+                                }
+
+                                timer_end.schedule(ttend, calendar.getTime());
+
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) { }
@@ -252,146 +274,165 @@ public class DriverMain extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) { }
         });
 */
-        final ArrayList<Timer> timerList = new ArrayList<>();
-        for (int i=0; i<timerArray.size(); i++) {
-            i_pos = i;
-            uType = 0;
-            sType = 0;
 
-            TimerTask timerTask2 = new TimerTask() {
-                @Override
-                public void run() {
-                    driver_image.setImageResource(R.drawable.driver_non);
-                }
+        i_pos = 0;
+
+        TimerTask timerTask2 = new TimerTask() {
+            @Override
+            public void run() {
+                driver_image.setImageResource(R.drawable.driver_non); }
             };
-            Timer timer2 = new Timer();
+        Timer timer2 = new Timer();
 
-            TimerTask timerTask = new TimerTask() {
-                @Override
-                public void run() {
-                    mDatabaseRef = database.getReference("Notice");
-                    mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            noticeArray.clear();
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                Notice notice = snapshot.getValue(Notice.class);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                uType = 0;
+                sType = 0;
+                mDatabaseRef = database.getReference("Notice");
+                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        noticeArray.clear();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Notice notice = snapshot.getValue(Notice.class);
+                            if (notice.getBusNum().equals(driver.getBusNum()) && notice.getBusTime().equals(driver.getBusTime())) {
+                                noticeArray.add(notice);
+                            }
+                        }
 
-                                if (notice.getBusNum().equals(driver.getBusNum()) && notice.getBusTime().equals(driver.getBusTime())) {
-                                    noticeArray.add(notice);
+                        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(driver.getBusNum());
+                        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                routeArray.clear();
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    routeArray.add(snapshot.getValue(String.class));
                                 }
-                            }
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) { }
-                    });
+                                for (int j = 0; j < noticeArray.size(); j++) {
+                                    if (noticeArray.get(j).getSbusStopNum().equals(routeArray.get(i_pos))) {
+                                        if (noticeArray.get(j).getU_type() == 1) {
+                                            uType += 1;
+                                            Toast.makeText(DriverMain.this, "test", Toast.LENGTH_SHORT).show();
+                                        } else if (noticeArray.get(j).getU_type() == 2) {
+                                            uType += 2;
+                                        }
+                                        sType += 1;
+                                    } else if (noticeArray.get(j).getEbusStopNum().equals(routeArray.get(i_pos))) {
+                                        if (noticeArray.get(j).getU_type() == 1) {
+                                            uType += 1;
+                                        } else if (noticeArray.get(j).getU_type() == 2) {
+                                            uType += 2;
+                                        }
+                                        sType += 2;
+                                    }
+                                }
+                                switch (sType) {
+                                    case 1:
+                                        switch (uType) {
+                                            case 1:
+                                                driver_image.setImageResource(R.drawable.driver1_1);
+                                                break;
+                                            case 2:
+                                                driver_image.setImageResource(R.drawable.driver1_2);
+                                                break;
+                                            case 3:
+                                                driver_image.setImageResource(R.drawable.driver1_3);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        break;
+                                    case 2:
+                                        switch (uType) {
+                                            case 1:
+                                                driver_image.setImageResource(R.drawable.driver2_1);
+                                                break;
+                                            case 2:
+                                                driver_image.setImageResource(R.drawable.driver2_2);
+                                                break;
+                                            case 3:
+                                                driver_image.setImageResource(R.drawable.driver2_3);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        break;
+                                    case 3:
+                                        switch (uType) {
+                                            case 2:
+                                                driver_image.setImageResource(R.drawable.driver3_1);
+                                                break;
+                                            case 3:
+                                                driver_image.setImageResource(R.drawable.driver3_2);
+                                                break;
+                                            case 4:
+                                                driver_image.setImageResource(R.drawable.driver3_3);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        break;
+                                    default:
+                                        driver_image.setImageResource(R.drawable.driver_non);
+                                        break;
+                                }
 
-                    for (int j=0; j<noticeArray.size(); j++) {
-                        if (noticeArray.get(j).getSbusStopNum().equals(routeArray.get(i_pos))) {
-                            if (noticeArray.get(j).getU_type() == 1) {
-                                uType += 1;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                } else {
+                                    pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                }
+
+                                if (Build.VERSION.SDK_INT >= 23) {
+                                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                } else {
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                }
+
+                                if (i_pos == timerArray.size()) {
+                                    timer2.schedule(timerTask2, 5 * 60 * 1000);
+                                } else {
+                                    timer2.schedule(timerTask2, ((Integer.parseInt(timerArray.get(i_pos + 1)) - Integer.parseInt(timerArray.get(i_pos))) * 1000) - 1000);
+                                }
+                                i_pos++;
                             }
-                            else if (noticeArray.get(j).getU_type() == 2) {
-                                uType += 2;
-                            }
-                            sType += 1;
-                        }
-                        else if (noticeArray.get(j).getEbusStopNum().equals(routeArray.get(i_pos))) {
-                            if (noticeArray.get(j).getU_type() == 1) {
-                                uType += 1;
-                            }
-                            else if (noticeArray.get(j).getU_type() == 2) {
-                                uType += 2;
-                            }
-                            sType += 2;
-                        }
-                    }
-                    switch (sType) {
-                        case 1:
-                            switch (uType) {
-                                case 1:
-                                    driver_image.setImageResource(R.drawable.driver1_1);
-                                    break;
-                                case 2:
-                                    driver_image.setImageResource(R.drawable.driver1_2);
-                                    break;
-                                case 3:
-                                    driver_image.setImageResource(R.drawable.driver1_3);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case 2:
-                            switch (uType) {
-                                case 1:
-                                    driver_image.setImageResource(R.drawable.driver2_1);
-                                    break;
-                                case 2:
-                                    driver_image.setImageResource(R.drawable.driver2_2);
-                                    break;
-                                case 3:
-                                    driver_image.setImageResource(R.drawable.driver2_3);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case 3:
-                            switch (uType) {
-                                case 2:
-                                    driver_image.setImageResource(R.drawable.driver3_1);
-                                    break;
-                                case 3:
-                                    driver_image.setImageResource(R.drawable.driver3_2);
-                                    break;
-                                case 4:
-                                    driver_image.setImageResource(R.drawable.driver3_3);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        default:
-                            driver_image.setImageResource(R.drawable.driver_non);
-                            break;
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) { }
+                        });
                     }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
                     }
-                    else {
-                        pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
-                    }
-
-                    if (Build.VERSION.SDK_INT >= 23) {
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-                    }
-                    else {
-                        alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-                    }
-
-                    if (i_pos == timerArray.size()) {
-                        timer2.schedule(timerTask2, 5*60*1000, 0);
-                    }
-                    else {
-                        timer2.schedule(timerTask2, ((Integer.parseInt(timerArray.get(i_pos + 1)) - Integer.parseInt(timerArray.get(i_pos))) * 1000) - 1000, 0);
-                    }
-                }
-            };
-            Timer timer = new Timer();
-            Date date = new Date();
-            String time_hours = simpleDateFormat.format(date);
-            String time_minutes = simpleDateFormat2.format(date);
-            int timer_time;
-            if (i == 0) {
-                timer_time = 0;
+                });
             }
-            else {
-                timer_time = (busTime.getHours() * 60 + busTime.getMinutes() + Integer.parseInt(timerArray.get(i - 1)) / 60) - (Integer.parseInt(time_hours) * 60 + Integer.parseInt(time_minutes));
+        };
+        Timer timer = new Timer();
+        Date date = new Date();
+        String time_hours = simpleDateFormat.format(date);
+        String time_minutes = simpleDateFormat2.format(date);
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        if (timerArray.size() != 0) {
+            int eTimer_min = 5;
+            if (busTime.getMinutes() - eTimer_min < 0) {
+                calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours() - 1);
+                calendar.set(Calendar.MINUTE, busTime.getMinutes() - eTimer_min + 60);
+            } else {
+                calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
+                calendar.set(Calendar.MINUTE, busTime.getMinutes() - eTimer_min);
             }
-            timer.schedule(timerTask, timer_time*60*1000, 0);
         }
+        /*
+        int timer_time;
+        if (i == 0) {
+            timer_time = 0;
+        }
+        else {
+            timer_time = (busTime.getHours() * 60 + busTime.getMinutes() + Integer.parseInt(timerArray.get(i - 1)) / 60) - (Integer.parseInt(time_hours) * 60 + Integer.parseInt(time_minutes));
+        }
+        */
+        timer.schedule(timerTask, calendar.getTime(), 5*60*1000);
 /*
         mDatabaseRef.addChildEventListener(new ChildEventListener() {
             @Override

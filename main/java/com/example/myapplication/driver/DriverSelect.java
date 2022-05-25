@@ -3,6 +3,7 @@ package com.example.myapplication.driver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -59,11 +60,18 @@ public class DriverSelect extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 intent = new Intent(DriverSelect.this, DriverMain.class);
                                 startActivity(intent);
+                                finish();
                             }
                         });
                         dlg_start.setNegativeButton("예", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                databaseReference.child(snapshot.getKey()).removeValue();
+                            }
+                        });
+                        dlg_start.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
                                 databaseReference.child(snapshot.getKey()).removeValue();
                             }
                         });
@@ -146,9 +154,15 @@ public class DriverSelect extends AppCompatActivity {
                                         public void onCancelled(@NonNull DatabaseError error) { }
                                     });
 
-                                    intent = new Intent(DriverSelect.this, DriverMain.class);
-                                    startActivity(intent);
-                                    finish();
+                                    Handler handler = new Handler();
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            intent = new Intent(DriverSelect.this, DriverMain.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 1000);
                                 }
                             });
                             dlg.show();
