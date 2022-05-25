@@ -1,6 +1,7 @@
 package com.example.myapplication.driver;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -8,7 +9,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -26,7 +26,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Driver_EbusSet extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -37,7 +40,7 @@ public class Driver_EbusSet extends AppCompatActivity {
     private ArrayList<String> timerArray = new ArrayList<>();
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.driver_ebusset);
 
@@ -125,6 +128,7 @@ public class Driver_EbusSet extends AppCompatActivity {
                 String time_hours = simpleDateFormat.format(date);
                 String time_minutes = simpleDateFormat2.format(date);
                 int position = i;
+                final Calendar calendar = Calendar.getInstance();
 
                 databaseReference = database.getReference("BusTime").child(busNum);
                 databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -156,12 +160,16 @@ public class Driver_EbusSet extends AppCompatActivity {
                                 }
                             });
                             int bTime = (bTime_h*60) + (bTime_m);
+                            int finalBTime_m = bTime_m;
+                            int finalBTime_h = bTime_h;
                             dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     for (int j=0; j<timerArray.size()-1; j++) {
-                                        if ((bTime + Integer.parseInt(timerArray.get(j))) <= i1
-                                        && (bTime + Integer.parseInt(timerArray.get(j+1))) > i1) {
+                                        if ((bTime + Integer.parseInt(timerArray.get(j+1))) > i1) {
+                                            for (int seat=j; seat<=position; seat++) {
+                                                database.getReference("BusSeat").child(busNum).child(busTime).child("route"+Integer.toString(seat+1)).setValue(1);
+                                            }
                                             for (int sRoute_pos = j; sRoute_pos<position; sRoute_pos++) {
                                                 databaseReference = database.getReference("Notice");
                                                 int finalSRoute_pos = sRoute_pos;
@@ -183,12 +191,60 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) { }
                                                 });
+                                                int finalJ = j;
+                                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        int notice_pos = 1;
+                                                        for (DataSnapshot snapshot2 : snapshot.getChildren()) {
+                                                            if (notice_pos != Integer.parseInt(snapshot2.getKey()))
+                                                                break;
+                                                            notice_pos++;
+                                                        }
+
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("Uid").setValue("appNoUse");
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("BusNum").setValue(busNum);
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("BusTime").setValue(busTime);
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("SbusStopNum").setValue(str.get(finalJ));
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("EbusStopNum").setValue(str.get(position));
+                                                        databaseReference.child(Integer.toString(notice_pos)).child("u_type").setValue(1);
+
+/////////////////////////////////////////////////////////////////////////////
+                                                        Timer timer = new Timer();
+                                                        int finalNotice_pos = notice_pos;
+                                                        TimerTask ttend = new TimerTask() {
+                                                            @Override
+                                                            public void run() {
+                                                                databaseReference.child(Integer.toString(finalNotice_pos)).removeValue();
+                                                            }
+                                                        };
+
+                                                        calendar.setTimeInMillis(System.currentTimeMillis());
+                                                        if (timerArray.size() != 0) {
+                                                            int eTimer_min = Integer.parseInt(timerArray.get(position))/60;
+                                                            if (eTimer_min + finalBTime_m < 60) {
+                                                                calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h);
+                                                                calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min);
+                                                            }
+                                                            else {
+                                                                calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h + 1);
+                                                                calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min - 60);
+                                                            }
+                                                        }
+
+                                                        timer.schedule(ttend, calendar.getTime());
+///////////////////////////////////////////////////////////////// 알람으로
+                                                    }
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                                });
                                             }
                                             break;
                                         }
                                     }
                                     Toast.makeText(Driver_EbusSet.this, "확인하였습니다.", Toast.LENGTH_SHORT).show();
-                                    finish();
+                                    Intent intent = new Intent(Driver_EbusSet.this, DriverMain.class);
+                                    startActivity(intent);
                                 }
                             });
                             dlg.show();

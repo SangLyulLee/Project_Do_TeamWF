@@ -10,7 +10,6 @@ import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Vibrator;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -54,7 +53,7 @@ public class Driver_Service extends Service {
             clsBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
             clsBuilder.setSmallIcon(R.drawable.logo)
                     .setContentTitle("DO! 알림")
-                    .setContentText("다음 정류장에서 장애인이 탑승할 예정입니다")
+                    .setContentText("장애인 버스 서비스 실행중")
                     .setContentIntent(pendingIntent);
 
             startForeground(1, clsBuilder.build());
@@ -65,7 +64,6 @@ public class Driver_Service extends Service {
         mediaPlayer = MediaPlayer.create(this, R.raw.sound);
         mediaPlayer.start();
         */
-        Toast.makeText(this, "잠시 후 장애인이 탑승할 예정입니다.", Toast.LENGTH_SHORT).show();
 
         return START_NOT_STICKY;
     }

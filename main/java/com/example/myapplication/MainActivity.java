@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onCancelled(@NonNull DatabaseError error) { }
                         });
                     }
+                    break;
                 }
             }
             @Override
@@ -329,6 +330,10 @@ public class MainActivity extends AppCompatActivity {
                     pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 }
 
+                my_intent.putExtra("eBus", snapshot.child("EbusStopNum").getValue(String.class));
+                my_intent.putExtra("sBus", snapshot.child("SbusStopNum").getValue(String.class));
+                my_intent.putExtra("busNum", snapshot.child("BusNum").getValue(String.class));
+                my_intent.putExtra("busTime", snapshot.child("BusTime").getValue(String.class));
                 if (Build.VERSION.SDK_INT >= 23) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
 
