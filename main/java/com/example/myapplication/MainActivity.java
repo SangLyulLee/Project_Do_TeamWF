@@ -12,12 +12,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.map.BusTime;
+import com.example.myapplication.notice.Alarm_Cancle;
 import com.example.myapplication.notice.Alarm_Reciver;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -297,6 +300,53 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        mDatabaseRef = database.getReference("Notice");
+        mDatabaseRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                Intent my_intent = new Intent(MainActivity.this, Alarm_Cancle.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                }
+                else {
+                    pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                }
+
+                if (Build.VERSION.SDK_INT >= 23) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+
+                }
+                else {
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
         });
     }
 }

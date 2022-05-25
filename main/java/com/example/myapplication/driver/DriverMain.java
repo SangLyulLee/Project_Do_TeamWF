@@ -71,6 +71,17 @@ public class DriverMain extends AppCompatActivity {
                     if (snapshot.child("Uid").equals(mFirebaseAuth.getUid())) {
                         driver = snapshot.getValue(Driver.class);
 
+                        Button seat_btn = (Button) findViewById(R.id.btn_seat);
+                        seat_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent btn_intent = new Intent(DriverMain.this, Driver_EbusSet.class);
+                                btn_intent.putExtra("busNum", driver.getBusNum());
+                                btn_intent.putExtra("busTime", driver.getBusTime());
+                                startActivity(btn_intent);
+                            }
+                        });
+
                         mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(driver.getBusNum());
                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -501,12 +512,5 @@ public class DriverMain extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });*/
-        Button seat_btn = (Button) findViewById(R.id.btn_seat);
-        seat_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
     }
 }
