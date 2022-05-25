@@ -78,6 +78,7 @@
         <activity
             android:name=".map.RouteMapActivity"
             android:exported="true"/>
+
         <receiver
             android:name=".notice.Alarm_Reciver"
             android:directBootAware="true"
@@ -89,8 +90,9 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
         <service
-            android:name=".notice.RingtonePlayingService"
+            android:name=".notice.Alarm_Service"
             android:enabled="true"
             android:exported="false"/>
 
@@ -107,6 +109,27 @@
         </receiver>
         <service
             android:name=".driver.Driver_Service"
+            android:enabled="true"
+            android:exported="false"/>
+
+        <activity
+            android:name=".driver.Driver_EbusSet"
+            android:exported="true"/>
+
+        <receiver
+            android:name=".notice.Alarm_Cancle"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".notice.Service_Cancle"
             android:enabled="true"
             android:exported="false"/>
     </application>

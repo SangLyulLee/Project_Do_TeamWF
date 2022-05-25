@@ -19,8 +19,8 @@ import androidx.core.app.NotificationCompat;
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 
-public class RingtonePlayingService extends Service {
-    private static final String TAG = RingtonePlayingService.class.getSimpleName();
+public class Alarm_Service extends Service {
+    private static final String TAG = Alarm_Service.class.getSimpleName();
 
     @Nullable
     @Override

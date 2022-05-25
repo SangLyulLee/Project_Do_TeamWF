@@ -66,7 +66,7 @@ public class Alarm_Reciver extends BroadcastReceiver {
 */
     //    Toast.makeText(context, "잠시 후 버스가 도착할 예정입니다.", Toast.LENGTH_SHORT).show();
 
-        Intent service_intent = new Intent(context, RingtonePlayingService.class);
+        Intent service_intent = new Intent(context, Alarm_Service.class);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(service_intent);

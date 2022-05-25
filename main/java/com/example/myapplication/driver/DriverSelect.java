@@ -148,6 +148,7 @@ public class DriverSelect extends AppCompatActivity {
 
                                     intent = new Intent(DriverSelect.this, DriverMain.class);
                                     startActivity(intent);
+                                    finish();
                                 }
                             });
                             dlg.show();
