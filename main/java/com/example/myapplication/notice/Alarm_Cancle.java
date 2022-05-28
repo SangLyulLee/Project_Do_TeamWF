@@ -9,7 +9,7 @@ public class Alarm_Cancle extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent service_intent = new Intent(context, Alarm_Cancle.class);
+        Intent service_intent = new Intent(context, Service_Cancle.class);
 
         service_intent.putExtra("eBus", intent.getStringExtra("eBus"));
         service_intent.putExtra("sBus", intent.getStringExtra("sBus"));
