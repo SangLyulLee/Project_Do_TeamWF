@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -45,7 +44,7 @@ public class DriverMain extends AppCompatActivity {
     private ArrayList<String> timerArray = new ArrayList<>();
     BusTime busTime = new BusTime();
     private AlarmManager alarmManager;
-    PendingIntent pendingIntent;
+    PendingIntent pendingIntent, pendingIntent2;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
     private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
     int uType, sType, drv_pos;
@@ -157,8 +156,6 @@ public class DriverMain extends AppCompatActivity {
                                     public void run() {
                                         uType = 0;
                                         sType = 0;
-                                        Looper.prepare();
-                                        Looper.loop();
                                         mDatabaseRef = database.getReference("Notice");
                                         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                             @Override
@@ -263,8 +260,8 @@ public class DriverMain extends AppCompatActivity {
                                                             alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
                                                         }
 
+
                                                         finalI_pos[0]++;
-                                                        Toast.makeText(DriverMain.this, "finalI_pos[0] : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
                                                     }
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) { }
@@ -277,11 +274,11 @@ public class DriverMain extends AppCompatActivity {
                                         });
                                     }
                                 };
-                                ////////////////////////////////////////////////////////// 알람으로
+
                                 Timer timer = new Timer();
                                 calendar.setTimeInMillis(System.currentTimeMillis());
                                 if (timerArray.size() != 0) {
-                                    int eTimer_min = 5;
+                                    int eTimer_min = (Integer.parseInt(timerArray.get(timerArray.size()-1))/60) / (timerArray.size()-1);
                                     if (busTime.getMinutes() - eTimer_min < 0) {
                                         calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours() - 1);
                                         calendar.set(Calendar.MINUTE, busTime.getMinutes() - eTimer_min + 60);
@@ -293,6 +290,7 @@ public class DriverMain extends AppCompatActivity {
                                 timer.schedule(timerTask, calendar.getTime(), 5*60*1000);
 
                                 // 운행 종료
+                                /*
                                 Timer timer_end = new Timer();
                                 TimerTask ttend = new TimerTask() {
                                     @Override
@@ -302,6 +300,7 @@ public class DriverMain extends AppCompatActivity {
                                         finish();
                                     }
                                 };
+                                */
 
                                 calendar.setTimeInMillis(System.currentTimeMillis());
                                 if (timerArray.size() != 0) {
@@ -315,7 +314,18 @@ public class DriverMain extends AppCompatActivity {
                                         calendar.set(Calendar.MINUTE, busTime.getMinutes() + eTimer_min - 60);
                                     }
                                 }
-                                ////////////////////////////////////////////////////////////////////////
+                                Intent end_intent = new Intent(DriverMain.this, Driver_EndAlarm.class);
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    pendingIntent2 = (PendingIntent.getBroadcast(DriverMain.this, 1, end_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                } else {
+                                    pendingIntent2 = (PendingIntent.getBroadcast(DriverMain.this, 1, end_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                }
+
+                                if (Build.VERSION.SDK_INT >= 23) {
+                                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent2);
+                                } else {
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent2);
+                                }
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) { }

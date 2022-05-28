@@ -1,7 +1,11 @@
 package com.example.myapplication.driver;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -28,8 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class Driver_EbusSet extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -38,13 +40,15 @@ public class Driver_EbusSet extends AppCompatActivity {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
     private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
     private ArrayList<String> timerArray = new ArrayList<>();
+    private AlarmManager alarmManager;
+    PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.driver_ebusset);
 
-
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         ListView list = (ListView) findViewById(R.id.driver_elist);
         ListAdapter listAdapter = new ListAdapter();
         list.setAdapter(listAdapter);
@@ -210,6 +214,8 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                         databaseReference.child(Integer.toString(notice_pos)).child("u_type").setValue(1);
 
 /////////////////////////////////////////////////////////////////////////////
+
+                                                        /*
                                                         Timer timer = new Timer();
                                                         int finalNotice_pos = notice_pos;
                                                         TimerTask ttend = new TimerTask() {
@@ -218,7 +224,7 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                                 databaseReference.child(Integer.toString(finalNotice_pos)).removeValue();
                                                             }
                                                         };
-
+                                                        */
                                                         calendar.setTimeInMillis(System.currentTimeMillis());
                                                         if (timerArray.size() != 0) {
                                                             int eTimer_min = Integer.parseInt(timerArray.get(position))/60;
@@ -232,8 +238,22 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                             }
                                                         }
 
-                                                        timer.schedule(ttend, calendar.getTime());
-///////////////////////////////////////////////////////////////// 알람으로
+                                            //            timer.schedule(ttend, calendar.getTime());
+
+                                                        Intent intent = new Intent(Driver_EbusSet.this, Driver_EbusAlarm.class);
+                                                        intent.putExtra("notice_pos", notice_pos);
+                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                            pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                                        } else {
+                                                            pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                        }
+
+                                                        if (Build.VERSION.SDK_INT >= 23) {
+                                                            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                        } else {
+                                                            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                        }
+/////////////////////////////////////////////////////////////////
                                                     }
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) { }

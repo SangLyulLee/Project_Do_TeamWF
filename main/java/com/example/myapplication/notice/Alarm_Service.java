@@ -32,11 +32,6 @@ public class Alarm_Service extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.d("---","---");
-        Log.d("//===========//","================================================");
-        Log.d("","\n"+"[A_NotiPushSetting > PushCallDisplay() 메소드 : 화면 강제 기상 실시]");
-        Log.d("//===========//","================================================");
-        Log.d("---","---");
         try {
             PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
             PowerManager.WakeLock wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, TAG);
