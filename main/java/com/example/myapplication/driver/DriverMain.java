@@ -68,7 +68,7 @@ public class DriverMain extends AppCompatActivity {
         seat_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(DriverMain.this, "wait...", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(DriverMain.this, "wait...", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -149,7 +149,7 @@ public class DriverMain extends AppCompatActivity {
                                 }
 
                                 final int[] finalI_pos = {i_pos};
-                                Toast.makeText(DriverMain.this, "finalI_pos[0] : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(DriverMain.this, "finalI_pos[0] : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
 
                                 TimerTask timerTask = new TimerTask() {
                                     @Override
@@ -180,7 +180,7 @@ public class DriverMain extends AppCompatActivity {
                                                             if (noticeArray.get(j).getSbusStopNum().equals(routeArray.get(finalI_pos[0]))) {
                                                                 if (noticeArray.get(j).getU_type() == 1) {
                                                                     uType += 1;
-                                                                    Toast.makeText(DriverMain.this, "j : "+Integer.toString(j)+"\ni_pos : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
+                                                                    //Toast.makeText(DriverMain.this, "j : "+Integer.toString(j)+"\ni_pos : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
                                                                 } else if (noticeArray.get(j).getU_type() == 2) {
                                                                     uType += 2;
                                                                 }
@@ -248,18 +248,19 @@ public class DriverMain extends AppCompatActivity {
                                                                 break;
                                                         }
 
-                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                                            pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-                                                        } else {
-                                                            pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
-                                                        }
+                                                        if (!(uType == 0 && sType == 0)) {
+                                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                                pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                                            } else {
+                                                                pendingIntent = (PendingIntent.getBroadcast(DriverMain.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                            }
 
-                                                        if (Build.VERSION.SDK_INT >= 23) {
-                                                            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-                                                        } else {
-                                                            alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                            if (Build.VERSION.SDK_INT >= 23) {
+                                                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                            } else {
+                                                                alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                            }
                                                         }
-
 
                                                         finalI_pos[0]++;
                                                     }
