@@ -26,7 +26,7 @@
         android:layout_width="270dp"
         android:layout_height="120dp"
         android:backgroundTint="#2196F3"
-        android:text="휠체어 전용 좌석\n0 / 1"
+        android:text="휠체어 전용 좌석 선택"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
