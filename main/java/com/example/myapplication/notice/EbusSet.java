@@ -283,7 +283,7 @@ public class EbusSet extends AppCompatActivity {
                                     });
 
                                     databaseReference = database.getReference("BusSeat").child(Integer.toString(busNum)).child(Integer.toString(sR_pos+1));
-                                    for (int seat_pos=s_pos; seat_pos<=position; seat_pos++) {
+                                    for (int seat_pos=s_pos; seat_pos<position; seat_pos++) {
                                         databaseReference.child("route"+Integer.toString(seat_pos+1)).setValue(1);
                                     }
 

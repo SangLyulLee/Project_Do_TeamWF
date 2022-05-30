@@ -171,7 +171,7 @@ public class Driver_EbusSet extends AppCompatActivity {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     for (int j=0; j<timerArray.size()-1; j++) {
                                         if ((bTime + Integer.parseInt(timerArray.get(j+1))) > i1) {
-                                            for (int seat=j; seat<=position; seat++) {
+                                            for (int seat=j; seat<position; seat++) {
                                                 database.getReference("BusSeat").child(busNum).child(busTime).child("route"+Integer.toString(seat+1)).setValue(1);
                                             }
                                             for (int sRoute_pos = j; sRoute_pos<position; sRoute_pos++) {
