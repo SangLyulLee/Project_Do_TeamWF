@@ -56,7 +56,7 @@ public class DriverMain extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         ImageView driver_image = (ImageView) findViewById(R.id.driver_image);
-        driver_image.setImageResource(R.drawable.driver_non);
+        //driver_image.setImageResource(R.drawable.driver_non);
 
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         final Calendar calendar = Calendar.getInstance();
@@ -103,6 +103,62 @@ public class DriverMain extends AppCompatActivity {
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     routeArray.add(snapshot.getValue(String.class));
                                 }
+                                mDatabaseRef = database.getReference("Notice");
+                                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        noticeArray.clear();
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            Notice notice = snapshot.getValue(Notice.class);
+                                            if (notice.getBusNum().equals(driver.getBusNum()) && notice.getBusTime().equals(driver.getBusTime())) {
+                                                noticeArray.add(notice);
+                                            }
+                                        }
+
+                                        for (int j = 0; j < noticeArray.size(); j++) {
+                                            if (noticeArray.get(j).getSbusStopNum().equals(routeArray.get(0))) {
+                                                if (noticeArray.get(j).getU_type() == 1) {
+                                                    uType += 1;
+                                                    //Toast.makeText(DriverMain.this, "j : "+Integer.toString(j)+"\ni_pos : "+Integer.toString(finalI_pos[0]), Toast.LENGTH_SHORT).show();
+                                                } else if (noticeArray.get(j).getU_type() == 2) {
+                                                    uType += 2;
+                                                }
+                                                sType += 1;
+                                            } else if (noticeArray.get(j).getEbusStopNum().equals(routeArray.get(0))) {
+                                                if (noticeArray.get(j).getU_type() == 1) {
+                                                    uType += 1;
+                                                } else if (noticeArray.get(j).getU_type() == 2) {
+                                                    uType += 2;
+                                                }
+                                                sType += 2;
+                                            }
+                                        }
+                                        switch (sType) {
+                                            case 1:
+                                                switch (uType) {
+                                                    case 1:
+                                                        driver_image.setImageResource(R.drawable.driver1_1);
+                                                        break;
+                                                    case 2:
+                                                        driver_image.setImageResource(R.drawable.driver1_2);
+                                                        break;
+                                                    case 3:
+                                                        driver_image.setImageResource(R.drawable.driver1_3);
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                                Toast.makeText(DriverMain.this, "잠시 후 장애인이 탑승할 예정입니다.", Toast.LENGTH_SHORT).show();
+                                                break;
+                                            default:
+                                                driver_image.setImageResource(R.drawable.driver_non);
+                                                break;
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                });
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) { }
@@ -127,7 +183,7 @@ public class DriverMain extends AppCompatActivity {
                                     timerArray.add(snapshot.getValue(String.class));
                                 }
 
-                                int i_pos = 0;
+                                int i_pos = 1;
                                 Date date = new Date();
                                 String time_hours = simpleDateFormat.format(date);
                                 String time_minutes = simpleDateFormat2.format(date);
@@ -136,7 +192,7 @@ public class DriverMain extends AppCompatActivity {
                                 for (int timer_pos=0; timer_pos<timerArray.size(); timer_pos++) {
                                     if (timer_pos == 0) {
                                         if (intStime < busStime) {
-                                            i_pos = 0;
+                                            i_pos = 1;
                                             break;
                                         }
                                     }
@@ -278,17 +334,13 @@ public class DriverMain extends AppCompatActivity {
 
                                 Timer timer = new Timer();
                                 calendar.setTimeInMillis(System.currentTimeMillis());
+                                int eTimer_min = 0;
                                 if (timerArray.size() != 0) {
-                                    int eTimer_min = (Integer.parseInt(timerArray.get(timerArray.size()-1))/60) / (timerArray.size()-1);
-                                    if (busTime.getMinutes() - eTimer_min < 0) {
-                                        calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours() - 1);
-                                        calendar.set(Calendar.MINUTE, busTime.getMinutes() - eTimer_min + 60);
-                                    } else {
-                                        calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
-                                        calendar.set(Calendar.MINUTE, busTime.getMinutes() - eTimer_min);
-                                    }
+                                    eTimer_min = (Integer.parseInt(timerArray.get(timerArray.size()-1))/60) / (timerArray.size()-1);
                                 }
-                                timer.schedule(timerTask, calendar.getTime(), 5*60*1000);
+                                calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
+                                calendar.set(Calendar.MINUTE, busTime.getMinutes());
+                                timer.schedule(timerTask, calendar.getTime(), eTimer_min*60*1000);
 
                                 // 운행 종료
                                 /*
@@ -305,7 +357,7 @@ public class DriverMain extends AppCompatActivity {
 
                                 calendar.setTimeInMillis(System.currentTimeMillis());
                                 if (timerArray.size() != 0) {
-                                    int eTimer_min = Integer.parseInt(timerArray.get(timerArray.size()-1))/60;
+                                    eTimer_min = Integer.parseInt(timerArray.get(timerArray.size()-1))/60;
                                     if (eTimer_min + busTime.getMinutes() < 60) {
                                         calendar.set(Calendar.HOUR_OF_DAY, busTime.getHours());
                                         calendar.set(Calendar.MINUTE, busTime.getMinutes() + eTimer_min);
