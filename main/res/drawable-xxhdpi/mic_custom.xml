@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:andriod="http://schemas.android.com/apk/res/android">
+    <item
+        andriod:drawable="@drawable/mic"
+        andriod:width="200dp"
+        andriod:height="200dp"/>
+</layer-list>
