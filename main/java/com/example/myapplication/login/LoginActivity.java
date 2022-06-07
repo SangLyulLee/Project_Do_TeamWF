@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.driver.DriverSelect;
+import com.example.myapplication.vision.blind_main;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -71,6 +72,10 @@ public class LoginActivity extends AppCompatActivity {
                                                     finish();
                                                     break;
                                                 case 2 :
+                                                    intent = new Intent(LoginActivity.this, blind_main.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                    break;
                                                 case 3 :
                                                     intent = new Intent(LoginActivity.this, DriverSelect.class);
                                                     startActivity(intent);

@@ -60,10 +60,10 @@ public class Driver_Service extends Service {
         }
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
-        /*
+
         mediaPlayer = MediaPlayer.create(this, R.raw.sound);
         mediaPlayer.start();
-        */
+
 
         return START_NOT_STICKY;
     }
