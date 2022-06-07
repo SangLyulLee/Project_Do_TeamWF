@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#8686D1"
+            android:gravity="center"
+            android:text="DO!"
+            android:textSize="50dp" />
+
+        <Button
+            android:id="@+id/blind_destination"
+            android:layout_width="match_parent"
+            android:layout_height="574dp"
+            android:layout_gravity="fill_vertical"
+            android:backgroundTint="#808080"
+            android:drawableBottom="@drawable/mic_custom"
+            android:text="목적지 검색"
+            android:textSize="50dp" />
+
+    </LinearLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
