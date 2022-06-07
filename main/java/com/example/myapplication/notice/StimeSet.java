@@ -103,6 +103,31 @@ public class StimeSet extends AppCompatActivity {
                         if (n_time > (s_time - 3)) {
                             Toast.makeText(StimeSet.this, "알림 설정은 버스 출발 시간 3분 전까지 가능합니다.", Toast.LENGTH_SHORT).show();
                         }
+                        else {
+                            AlertDialog.Builder dlg = new AlertDialog.Builder(StimeSet.this);
+                            dlg.setTitle("버스 확인");
+
+                            dlg.setMessage("버스 번호 : " + busNum + "번\n" + "탑승 시간 : " + busTimeArray.get(position).getHours() + "시 " + busTimeArray.get(position).getMinutes() + "분\n입력하신 정보가 맞습니까?");
+                            dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Toast.makeText(StimeSet.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Toast.makeText(StimeSet.this, "확인하였습니다.", Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(StimeSet.this, EbusSet.class);
+                                    intent.putExtra("busNum", busNum);
+                                    intent.putExtra("s_pos", s_pos);
+                                    intent.putExtra("sR_pos", position);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+                            dlg.show();
+                        }
                     }
                     else {
                         if (n_time >= s_time - ((Integer.parseInt(routeTimerArray.get(s_pos))/60)-(Integer.parseInt(routeTimerArray.get(s_pos-1))/60))) {

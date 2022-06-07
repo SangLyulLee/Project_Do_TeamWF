@@ -89,6 +89,7 @@ public class Menu2 extends AppCompatActivity {
         ArrayList<Integer> timer_arr = new ArrayList<Integer>();
         EditText edit2 = (EditText) findViewById(R.id.editText2);
         Button route_btn = (Button) findViewById(R.id.route_btn);
+
         route_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -300,5 +301,170 @@ public class Menu2 extends AppCompatActivity {
                 listAdapter.notifyDataSetChanged();
             }
         });
+
+        String searchBusNum = "null";
+        searchBusNum = getIntent().getStringExtra("searchBusNum");
+        if (!"null".equals(searchBusNum)) {
+            edit2.setText(searchBusNum);
+            input_str = edit2.getText().toString();
+            databaseReference = database.getReference("BusRoute").child("1").child("route");
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    str.clear();
+                    str1_name.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        if (input_str.equals(snapshot.getKey())) {
+                            for (DataSnapshot snapshot2 : dataSnapshot.child(input_str).getChildren()) {
+                                str_a = snapshot2.getValue(String.class);
+                                str.add(str_a);
+                            }
+                        }
+                    }
+                    for (int i=0; i<str.size(); i++) {
+                        for (int j=0; j<arrayList.size(); j++) {
+                            if (str.get(i).equals(arrayList.get(j).getBusStopNum())) {
+                                str1_name.add(arrayList.get(j).getBusStopName());
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
+
+            /* 시간 정보 */
+            databaseReference = database.getReference("BusRoute").child("1").child("timer");
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    str.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        if (input_str.equals(snapshot.getKey())) {
+                            for (DataSnapshot snapshot2 : dataSnapshot.child(input_str).getChildren()) {
+                                str_b = snapshot2.getValue(String.class);
+                                str.add(str_b);
+                            }
+                        }
+                    }
+
+                    listAdapter.list_clear();
+                    for (int i=0; i<str1_name.size(); i++) {
+                        if (i == 0) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                        else if (i == str1_name.size()-1) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route3), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                        else {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2), str1_name.get(i), ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
+
+            databaseReference = database.getReference("BusTime").child(input_str);
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    busTimeArray.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        if (input_str.equals(snapshot.getKey())) {
+                            for (DataSnapshot snapshot1 : dataSnapshot.getChildren()) {
+                                busTimeArray.add(snapshot1.getValue(BusTime.class));
+                            }
+                        }
+                    }
+
+                    String time_hours = simpleDateFormat.format(date);
+                    String time_minutes = simpleDateFormat2.format(date);
+                    time_int = (Integer.parseInt(time_hours)*60) + Integer.parseInt(time_minutes);
+
+                    for (int i=0; i<busTimeArray.size(); i++) {
+                        st_time = (busTimeArray.get(i).getHours()*60) + busTimeArray.get(i).getMinutes();
+                        if (time_int - st_time >= 0) {
+                            for (int j = 0; j < str.size(); j++) {
+                                if ((time_int - st_time < (Integer.parseInt(str.get(j))/60)) && (time_int - st_time >= (Integer.parseInt(str.get(j-1))/60))) {
+                                    if (j == 0) {
+                                        listAdapter.setListImg(0, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route1_1));
+                                        break;
+                                    }
+                                    else {
+                                        listAdapter.setListImg(j - 1, ContextCompat.getDrawable(getApplicationContext(), R.drawable.route2_1));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    listAdapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) { }
+            });
+
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    int position = i;
+                    if (position == str1_name.size()-1) {
+                        Toast.makeText(Menu2.this, "마지막 정류장은 선택할 수 없습니다.\n 다시 선택해주세요.", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        AlertDialog.Builder dlg = new AlertDialog.Builder(Menu2.this);
+                        dlg.setTitle("버스 확인");
+                        dlg.setMessage("버스 번호 : " + input_str + "번\n" + "탑승 장소 : " + str1_name.get(position) + "\n알림 설정하려는 버스 정보가 맞습니까?");
+                        dlg.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(Menu2.this, "취소하였습니다.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+
+                                databaseReference = database.getReference().child("Notice");
+                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        boolean notice_c = true;
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                                                Toast.makeText(Menu2.this, "이미 알림이 있습니다. 알림 변경을 하시거나 취소해주세요.", Toast.LENGTH_SHORT).show();
+                                                notice_c = false;
+                                            }
+                                        }
+                                        if (notice_c) {
+                                            Intent intent = new Intent(Menu2.this, StimeSet.class);
+                                            intent.putExtra("busNum", Integer.parseInt(input_str));
+                                            intent.putExtra("s_pos", position);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                });
+                            }
+                        });
+                        dlg.show();
+                    }
+                }
+            });
+            routeMap_btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentMap = new Intent(Menu2.this, RouteMapActivity.class);
+                    intentMap.putExtra("busNum", Integer.parseInt(input_str));
+                    startActivity(intentMap);
+                }
+            });
+        }
     }
 }

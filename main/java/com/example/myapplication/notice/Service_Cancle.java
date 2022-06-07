@@ -81,13 +81,25 @@ public class Service_Cancle extends Service {
             startForeground(1, clsBuilder.build());
         }
 
-        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(intent.getStringExtra("busNum"));
+        /*
+        String busNum = Integer.toString(intent.getIntExtra("busNum", 0));
+        String eBus = Integer.toString(intent.getIntExtra("eBus", 0));
+        String sBus = Integer.toString(intent.getIntExtra("sBus", 0));
+        String busTime = Integer.toString(intent.getIntExtra("busTime", 0));
+
+        Toast.makeText(this, "test : "+eBus, Toast.LENGTH_SHORT).show();
+        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(busNum);
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
+                String busNum = Integer.toString(intent.getIntExtra("busNum", 0));
+                int eBus = intent.getIntExtra("eBus", 0);
+                String sBus = Integer.toString(intent.getIntExtra("sBus", 0));
+                String busTime = Integer.toString(intent.getIntExtra("busTime", 0));
+
                 int i = 0;
                 for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
-                    if (intent.getStringExtra("eBus").equals(snapshot1.getValue(String.class))) {
+                    if (Integer.toString(eBus).equals(snapshot1.getValue(String.class))) {
                         break;
                     }
                     i++;
@@ -97,7 +109,7 @@ public class Service_Cancle extends Service {
 
                 i = 0;
                 for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
-                    if (intent.getStringExtra("sBus").equals(snapshot1.getValue(String.class))) {
+                    if (sBus.equals(snapshot1.getValue(String.class))) {
                         break;
                     }
                     i++;
@@ -105,15 +117,15 @@ public class Service_Cancle extends Service {
                 final int pos_s = i;
                 for (int seat_pos = pos_s + 1; seat_pos <= pos + 1; seat_pos++) {
                     database.getReference("BusSeat")
-                            .child(intent.getStringExtra("busNum"))
-                            .child(intent.getStringExtra("busTime"))
+                            .child(busNum)
+                            .child(busTime)
                             .child("route" + Integer.toString(seat_pos)).setValue(0);
                 }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
-
+        */
         Toast.makeText(this, "앱 미사용자 탑승으로 알림이 취소되었습니다.\n다시 선택해주세요.", Toast.LENGTH_SHORT).show();
 
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);

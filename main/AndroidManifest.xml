@@ -3,12 +3,21 @@
     package="com.example.myapplication">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA,android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -61,6 +70,13 @@
             android:name=".Menu3"
             android:exported="true" />
         <activity
+        android:name=".SearchMenu1"
+        android:exported="true"/>
+        <meta-data
+            android:name=".SearchMenu1"
+            android:value="true" />
+
+        <activity
             android:name=".driver.DriverMain"
             android:exported="true"/>
         <activity
@@ -78,6 +94,14 @@
         <activity
             android:name=".map.RouteMapActivity"
             android:exported="true"/>
+
+        <activity android:name=".kakaomap.kakaomapmain"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.actions.RESERVE_TAXI_RESERVATION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <receiver
             android:name=".notice.Alarm_Reciver"
@@ -166,6 +190,19 @@
             android:name=".driver.Driver_EbusService"
             android:enabled="true"
             android:exported="false"/>
+
+        <activity
+            android:name=".vision.blind_main"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".vision.blind_route" />
+        <activity android:name=".vision.blind_businfo" />
+        <activity android:name=".vision.blind_busstation" />
+        <activity android:name=".vision.selectedstation" />
     </application>
 
 </manifest>

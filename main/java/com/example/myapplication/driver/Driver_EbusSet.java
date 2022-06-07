@@ -42,6 +42,7 @@ public class Driver_EbusSet extends AppCompatActivity {
     private ArrayList<String> timerArray = new ArrayList<>();
     private AlarmManager alarmManager;
     PendingIntent pendingIntent;
+    int sbus_pos = 0, ebus_pos = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,12 +172,11 @@ public class Driver_EbusSet extends AppCompatActivity {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     for (int j=0; j<timerArray.size()-1; j++) {
                                         if ((bTime + Integer.parseInt(timerArray.get(j+1))) > i1) {
-                                            for (int seat=j; seat<position; seat++) {
-                                                database.getReference("BusSeat").child(busNum).child(busTime).child("route"+Integer.toString(seat+1)).setValue(1);
-                                            }
+                                            int finalJ = j;
                                             for (int sRoute_pos = j; sRoute_pos<position; sRoute_pos++) {
                                                 databaseReference = database.getReference("Notice");
                                                 int finalSRoute_pos = sRoute_pos;
+
                                                 databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                                                     @Override
                                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -184,34 +184,54 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                             Notice notice = snapshot.getValue(Notice.class);
 
                                                             if (notice.getBusNum().equals(busNum) && notice.getBusTime().equals(busTime)) {
-                                                                if (str.get(finalSRoute_pos).equals(snapshot.child("SbusStopNum").getValue(String.class))
-                                                                        || str.get(finalSRoute_pos).equals(snapshot.child("EbusStopNum").getValue(String.class))) {
-
+                                                                if (str.get(finalSRoute_pos).equals(notice.getSbusStopNum())
+                                                                        || str.get(finalSRoute_pos).equals(notice.getEbusStopNum())) {
+                                                                    for (int k=0; k<str.size(); k++) {
+                                                                        if (str.get(k).equals(notice.getSbusStopNum())) {
+                                                                            sbus_pos = k;
+                                                                            break;
+                                                                        }
+                                                                        k++;
+                                                                    }
+                                                                    for (int k=0; k<str.size(); k++) {
+                                                                        if (str.get(k).equals(notice.getEbusStopNum())) {
+                                                                            ebus_pos = k;
+                                                                            for (int seat = sbus_pos; seat < ebus_pos; seat++) {
+                                                                                database.getReference("BusSeat").child(busNum).child(busTime).child("route" + Integer.toString(seat + 1)).setValue(0);
+                                                                            }
+                                                                            break;
+                                                                        }
+                                                                        k++;
+                                                                    }
                                                                     databaseReference.child(snapshot.getKey()).removeValue();
                                                                 }
                                                             }
+                                                        }
+                                                        for (int seat=finalJ; seat<position; seat++) {
+                                                            database.getReference("BusSeat").child(busNum).child(busTime).child("route"+Integer.toString(seat+1)).setValue(1);
                                                         }
                                                     }
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) { }
                                                 });
-                                                int finalJ = j;
-                                                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                        int notice_pos = 1;
-                                                        for (DataSnapshot snapshot2 : snapshot.getChildren()) {
-                                                            if (notice_pos != Integer.parseInt(snapshot2.getKey()))
-                                                                break;
-                                                            notice_pos++;
-                                                        }
+                                            }
+                                            databaseReference = database.getReference("Notice");
+                                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    int notice_pos = 1;
+                                                    for (DataSnapshot snapshot2 : snapshot.getChildren()) {
+                                                        if (notice_pos != Integer.parseInt(snapshot2.getKey()))
+                                                            break;
+                                                        notice_pos++;
+                                                    }
 
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("Uid").setValue("appNoUse");
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("BusNum").setValue(busNum);
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("BusTime").setValue(busTime);
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("SbusStopNum").setValue(str.get(finalJ));
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("EbusStopNum").setValue(str.get(position));
-                                                        databaseReference.child(Integer.toString(notice_pos)).child("u_type").setValue(1);
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("Uid").setValue("appNoUse");
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("BusNum").setValue(busNum);
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("BusTime").setValue(busTime);
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("SbusStopNum").setValue(str.get(finalJ));
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("EbusStopNum").setValue(str.get(position));
+                                                    databaseReference.child(Integer.toString(notice_pos)).child("u_type").setValue(1);
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -225,40 +245,39 @@ public class Driver_EbusSet extends AppCompatActivity {
                                                             }
                                                         };
                                                         */
-                                                        calendar.setTimeInMillis(System.currentTimeMillis());
-                                                        if (timerArray.size() != 0) {
-                                                            int eTimer_min = Integer.parseInt(timerArray.get(position))/60;
-                                                            if (eTimer_min + finalBTime_m < 60) {
-                                                                calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h);
-                                                                calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min);
-                                                            }
-                                                            else {
-                                                                calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h + 1);
-                                                                calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min - 60);
-                                                            }
+                                                    calendar.setTimeInMillis(System.currentTimeMillis());
+                                                    if (timerArray.size() != 0) {
+                                                        int eTimer_min = Integer.parseInt(timerArray.get(position))/60;
+                                                        if (eTimer_min + finalBTime_m < 60) {
+                                                            calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h);
+                                                            calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min);
                                                         }
-
-                                            //            timer.schedule(ttend, calendar.getTime());
-
-                                                        Intent intent = new Intent(Driver_EbusSet.this, Driver_EbusAlarm.class);
-                                                        intent.putExtra("notice_pos", notice_pos);
-                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                                            pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-                                                        } else {
-                                                            pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                        else {
+                                                            calendar.set(Calendar.HOUR_OF_DAY, finalBTime_h + 1);
+                                                            calendar.set(Calendar.MINUTE, finalBTime_m + eTimer_min - 60);
                                                         }
-
-                                                        if (Build.VERSION.SDK_INT >= 23) {
-                                                            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                                                        } else {
-                                                            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                                                        }
-/////////////////////////////////////////////////////////////////
                                                     }
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError error) { }
-                                                });
-                                            }
+
+                                                    //            timer.schedule(ttend, calendar.getTime());
+
+                                                    Intent intent = new Intent(Driver_EbusSet.this, Driver_EbusAlarm.class);
+                                                    intent.putExtra("notice_pos", notice_pos);
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                        pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                                    } else {
+                                                        pendingIntent = (PendingIntent.getBroadcast(Driver_EbusSet.this, 2, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                    }
+
+                                                    if (Build.VERSION.SDK_INT >= 23) {
+                                                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                    } else {
+                                                        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                                                    }
+/////////////////////////////////////////////////////////////////
+                                                }
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) { }
+                                            });
                                             break;
                                         }
                                     }

@@ -35,6 +35,7 @@ public class NoticeRe extends AppCompatActivity {
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private Notice notice;
     private String noticeKey;
+    int s_pos, e_pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +113,19 @@ public class NoticeRe extends AppCompatActivity {
                     }
                 }
                 listAdapter.notifyDataSetChanged();
+
+                for (int i=0; i<str.size(); i++) {
+                    if (str.get(i).equals(notice.getSbusStopNum())) {
+                        s_pos = i;
+                        break;
+                    }
+                }
+                for (int i=0; i<str.size(); i++) {
+                    if (str.get(i).equals(notice.getEbusStopNum())) {
+                        e_pos = i;
+                        break;
+                    }
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -143,11 +157,19 @@ public class NoticeRe extends AppCompatActivity {
                     dlg.setNegativeButton("예", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            databaseReference = FirebaseDatabase.getInstance().getReference("Notice");
+                            databaseReference = FirebaseDatabase.getInstance().getReference("Notice").child(noticeKey);
                             databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    databaseReference.child(noticeKey).child("EbusStopNum").setValue(str.get(position));
+                                    databaseReference.child("EbusStopNum").setValue(str.get(position));
+
+                                    databaseReference = database.getReference("BusSeat").child(dataSnapshot.child("BusNum").getValue(String.class)).child(dataSnapshot.child("BusTime").getValue(String.class));
+                                    for (int seat_pos=s_pos; seat_pos<position; seat_pos++) {
+                                        databaseReference.child("route"+Integer.toString(seat_pos+1)).setValue(1);
+                                    }
+                                    for (int seat_pos=position; seat_pos<e_pos; seat_pos++) {
+                                        databaseReference.child("route"+Integer.toString(seat_pos+1)).setValue(0);
+                                    }
                                 }
 
                                 @Override

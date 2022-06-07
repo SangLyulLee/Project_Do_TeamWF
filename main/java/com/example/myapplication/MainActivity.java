@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,9 +16,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.kakaomap.kakaomapmain;
 import com.example.myapplication.map.BusTime;
 import com.example.myapplication.notice.Alarm_Cancle;
 import com.example.myapplication.notice.Alarm_Reciver;
+import com.example.myapplication.notice.Notice;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -47,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         TextView textView = (TextView) findViewById(R.id.textView);
 
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         Button button1 = (Button) findViewById(R.id.button1);
         Button button2 = (Button) findViewById(R.id.button2);
         Button button3 = (Button) findViewById(R.id.button3);
+        Button button4 = (Button) findViewById(R.id.button4);
 
         /* name 출력 */
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -87,6 +92,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "회원님의 알림 내역이 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, kakaomapmain.class);
+                startActivity(intent);
             }
         });
 
@@ -322,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                 Intent my_intent = new Intent(MainActivity.this, Alarm_Cancle.class);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -330,13 +344,23 @@ public class MainActivity extends AppCompatActivity {
                     pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 }
 
-                my_intent.putExtra("eBus", snapshot.child("EbusStopNum").getValue(String.class));
-                my_intent.putExtra("sBus", snapshot.child("SbusStopNum").getValue(String.class));
-                my_intent.putExtra("busNum", snapshot.child("BusNum").getValue(String.class));
-                my_intent.putExtra("busTime", snapshot.child("BusTime").getValue(String.class));
+                Button button3 = (Button) findViewById(R.id.button3);
+                button3.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(MainActivity.this, "회원님의 알림 내역이 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                Notice notice = snapshot.getValue(Notice.class);
+
+                my_intent.putExtra("eBus", Integer.parseInt(notice.getEbusStopNum()));
+                my_intent.putExtra("sBus", Integer.parseInt(notice.getSbusStopNum()));
+                my_intent.putExtra("busNum", Integer.parseInt(notice.getBusNum()));
+                my_intent.putExtra("busTime", Integer.parseInt(notice.getBusTime()));
+
                 if (Build.VERSION.SDK_INT >= 23) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-
                 }
                 else {
                     alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
