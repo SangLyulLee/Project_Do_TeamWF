@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -20,11 +21,17 @@ import androidx.core.content.ContextCompat;
 import com.example.myapplication.R;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class blind_main extends AppCompatActivity {
 
     Intent intent;
     SpeechRecognizer mRecognizer;
+    final int PERMISSION = 1;
+    RecognitionListener listener;
+    TextToSpeech tts;
     String des = "";
     final int PERMISSION = 1;
     int result;
@@ -60,6 +67,29 @@ public class blind_main extends AppCompatActivity {
                     mRecognizer.startListening(intent);
                 }
             });
+        }
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() { //tts구현
+            @Override
+            public void onInit(int i) {
+                if (i == TextToSpeech.SUCCESS) { //tts 잘되면
+                    tts.setLanguage(Locale.KOREAN);     //한국어로 설정
+                    //tts.setSpeechRate(0.8f); //말하기 속도 지정 1.0이 기본값
+                }
+            }
+        });
+
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
+            }
+        };
+        timer.schedule(timerTask, 1000);
+
+        while (true) {
+            if (!tts.isSpeaking())
+                break;
         }
 
         // RecognizerIntent 객체에 할당할 listener 생성
@@ -130,11 +160,12 @@ public class blind_main extends AppCompatActivity {
             public void onResults(Bundle results) {
                 // 말을 하면 ArrayList에 단어를 넣고 textView에 단어 연결
                 ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                tts.speak("현재 위치부터 목적지까지의 버스를 탐색합니다. 잠시만 기다려주세요.", TextToSpeech.QUEUE_ADD, null);
+
                 Intent intent1 = new Intent(blind_main.this, blind_route.class);
                 for (int i = 0; i < matches.size(); i++) {
                     intent1.putExtra("speech", matches.get(i));
                 }
-
                 startActivity(intent1);
             }
 

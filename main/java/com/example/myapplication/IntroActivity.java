@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.login.LoginActivity;
 import com.example.myapplication.login.RegisterActivity;
+import com.example.myapplication.vision.blind_main;
 
 public class IntroActivity extends AppCompatActivity {
 
@@ -22,6 +23,7 @@ public class IntroActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(IntroActivity.this, LoginActivity.class);
+                //Intent intent = new Intent(IntroActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
         });

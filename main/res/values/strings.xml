@@ -6,4 +6,5 @@
     <string name="restapi_key">KakaoAK 58c07a0f5f77a72f1866e4c4bdb6b38a</string>
     <string name="login">로그인</string>
     <string name="signup">회원가입</string>
+    <string name="title">Notice_btn</string>
 </resources>

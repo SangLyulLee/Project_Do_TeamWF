@@ -15,6 +15,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <Button
+            android:id="@+id/blind_destination"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="fill_vertical"
+            android:backgroundTint="#E0E0E0"
+            android:foreground="@drawable/mic"
+            android:foregroundGravity="center_vertical|center"
+            android:text="목적지 입력\n\n\n\n\n\n\n"
+            android:textSize="45dp" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="100dp"
