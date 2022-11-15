@@ -1,10 +1,14 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,7 +31,7 @@ public class Menu1  extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
-    private ArrayList<BusStop> arrayList;
+    private ArrayList<BusStop> arrayList, filteredList;
     private FirebaseDatabase database;
     private DatabaseReference databaseReference;
 
@@ -39,7 +43,9 @@ public class Menu1  extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+
         arrayList = new ArrayList<>();
+        filteredList = new ArrayList<>();
 
         database = FirebaseDatabase.getInstance();
 
@@ -52,7 +58,6 @@ public class Menu1  extends AppCompatActivity {
                     BusStop busstop = snapshot.getValue(BusStop.class);
                     arrayList.add(busstop);
                 }
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -60,8 +65,23 @@ public class Menu1  extends AppCompatActivity {
                 Log.e("Menu1", String.valueOf(databaseError.toException()));
             }
         });
-        adapter = new BusStopAdapter(arrayList, this);
-        recyclerView.setAdapter(adapter);
+
+        EditText edit1 = (EditText) findViewById(R.id.editText1);
+
+        edit1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                String searchText = edit1.getText().toString();
+                searchFilter(searchText);
+            }
+        });
 
         Button btn_map = (Button) findViewById(R.id.btn_map);
         btn_map.setOnClickListener(new View.OnClickListener() {
@@ -71,9 +91,26 @@ public class Menu1  extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
         DividerItemDecoration dividerItemDecoration =
                 new DividerItemDecoration(recyclerView.getContext(), new LinearLayoutManager(this).getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    public void searchFilter(String searchText) {
+        filteredList.clear();
+
+        for (int i = 0; i < arrayList.size(); i++) {
+            if (arrayList.get(i).getBusStopName().toLowerCase().contains(searchText.toLowerCase())) {
+                filteredList.add(arrayList.get(i));
+            }
+        }
+        adapter = new BusStopAdapter(filteredList, this);
+        recyclerView.setAdapter(adapter);
+    }
+
 }
