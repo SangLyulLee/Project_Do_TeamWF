@@ -17,17 +17,5 @@
         android:layout_width="wrap_content"
         android:layout_height="15dp"
         android:textSize="30px" />
-    <TextView
-        android:id="@+id/busstopwd"
-        android:text="위도"
-        android:layout_width="wrap_content"
-        android:layout_height="15dp"
-        android:textSize="30px" />
-    <TextView
-        android:id="@+id/busstopgd"
-        android:text="경도"
-        android:layout_width="wrap_content"
-        android:layout_height="15dp"
-        android:textSize="30px" />
 
 </LinearLayout>

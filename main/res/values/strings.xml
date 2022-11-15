@@ -2,6 +2,9 @@
     <string name="app_name">My Application</string>
     <string name="plz_name">아이디를 입력하세요</string>
     <string name="plz_passwd">비밀번호를 입력하세요</string>
+    <string name="daummap_key">a2f83a1363b70f03937194928377a282</string>
+    <string name="restapi_key">KakaoAK 58c07a0f5f77a72f1866e4c4bdb6b38a</string>
     <string name="login">로그인</string>
     <string name="signup">회원가입</string>
+    <string name="title">Notice_btn</string>
 </resources>

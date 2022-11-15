@@ -199,10 +199,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".vision.blind_route" />
+        <activity
+            android:name=".vision.blind_route"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".vision.blind_businfo" />
         <activity android:name=".vision.blind_busstation" />
         <activity android:name=".vision.selectedstation" />
+        <activity
+            android:name=".vision.blind_notice"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
