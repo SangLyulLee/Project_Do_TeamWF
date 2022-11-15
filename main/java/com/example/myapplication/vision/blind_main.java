@@ -32,6 +32,10 @@ public class blind_main extends AppCompatActivity {
     final int PERMISSION = 1;
     RecognitionListener listener;
     TextToSpeech tts;
+    String des = "";
+    final int PERMISSION = 1;
+    int result;
+    RecognitionListener listener;
 
     @Override
     protected void onCreate(Bundle savedIntanceState) {

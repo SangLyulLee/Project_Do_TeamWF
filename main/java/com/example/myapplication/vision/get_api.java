@@ -61,6 +61,21 @@ public class get_api {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         }
+                        if (tag.equals("item"));
+                            if (tag.equals("citycode")) {
+                                xpp.next();
+                                buffer.append(xpp.getText() + " ");
+                            } else if (tag.equals("nodeid")) {
+                                xpp.next();
+                                buffer.append(xpp.getText() + " ");
+                            } else if (tag.equals("nodenm")) {
+                                xpp.next();
+                                buffer.append(xpp.getText() + " ");
+                            }else if (tag.equals("nodeno")) {
+                                xpp.next();
+                                buffer.append(xpp.getText() + " ");
+                                i++;
+                            }
 
                         break;
                     case XmlPullParser.TEXT:
@@ -70,7 +85,7 @@ public class get_api {
                         if (tag.equals("item")) {
                             buffer.append("\n");
                             i++;
-                        }
+                        if (tag.equals("item")) buffer.append("\n");
                         break;
                 }
                 eventType = xpp.next();
@@ -121,6 +136,7 @@ public class get_api {
                             xpp.next();
                             buffer.append(Integer.parseInt(xpp.getText())/60 + " ");
                         }
+                        if (tag.equals("item")) ;
                         else if (tag.equals("routeid")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
@@ -137,6 +153,7 @@ public class get_api {
                         tag = xpp.getName();
                         if (tag.equals("item"))
                             buffer.append("\n");
+                        if (tag.equals("item")) ;
                         break;
                 }
                 eventType = xpp.next();
@@ -256,6 +273,21 @@ public class get_api {
                     case XmlPullParser.TEXT:
                         break;
 
+                        if (tag.equals("item")) ;
+                        else if (tag.equals("arrtime")) {
+                            xpp.next();
+                            buffer.append("남은 시간 : " + Integer.parseInt(xpp.getText())/60 + "분\n");
+                        }else if (tag.equals("routeno")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + "\n");
+                            buffer.append(xpp.getText() + "번 버스\n");
+                        } else if (tag.equals("vehicletp")) {
+                            xpp.next();
+                            buffer.append("버스 타입 : " + xpp.getText() + "\n");
+                        }
+                        break;
+                    case XmlPullParser.TEXT:
+                        break;
                     case XmlPullParser.END_TAG:
                         tag = xpp.getName();
                         if (tag.equals("item"))
