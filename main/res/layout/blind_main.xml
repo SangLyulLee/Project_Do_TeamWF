@@ -25,23 +25,6 @@
             android:foregroundGravity="center_vertical|center"
             android:text="목적지 입력\n\n\n\n\n\n\n"
             android:textSize="45dp" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="#8686D1"
-            android:gravity="center"
-            android:text="DO!"
-            android:textSize="50dp" />
-
-        <Button
-            android:id="@+id/blind_destination"
-            android:layout_width="match_parent"
-            android:layout_height="574dp"
-            android:layout_gravity="fill_vertical"
-            android:backgroundTint="#808080"
-            android:drawableBottom="@drawable/mic_custom"
-            android:text="목적지 검색"
-            android:textSize="50dp" />
 
     </LinearLayout>
 
