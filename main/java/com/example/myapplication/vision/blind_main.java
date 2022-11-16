@@ -14,11 +14,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -32,15 +40,36 @@ public class blind_main extends AppCompatActivity {
     final int PERMISSION = 1;
     RecognitionListener listener;
     TextToSpeech tts;
-    String des = "";
-    final int PERMISSION = 1;
-    int result;
-    RecognitionListener listener;
+    private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+    FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private DatabaseReference databaseReference;
+    boolean noticeBool = false;
 
     @Override
     protected void onCreate(Bundle savedIntanceState) {
         super.onCreate(savedIntanceState);
         setContentView(R.layout.blind_main);
+
+        firebaseUser.getUid();
+
+        databaseReference = database.getReference().child("Notice_api");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                        Intent intent = new Intent(blind_main.this, blind_wait.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+                noticeBool = true;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
 
         if (Build.VERSION.SDK_INT >= 23) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET,
@@ -85,8 +114,9 @@ public class blind_main extends AppCompatActivity {
                 tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
             }
         };
-        timer.schedule(timerTask, 1000);
-
+        if (noticeBool) {
+            timer.schedule(timerTask, 1000);
+        }
         while (true) {
             if (!tts.isSpeaking())
                 break;
