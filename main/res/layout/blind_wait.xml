@@ -6,13 +6,15 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/textView10"
-        android:layout_width="300dp"
-        android:layout_height="377dp"
-        android:text=""
+        android:id="@+id/busData_text"
+        android:layout_width="392dp"
+        android:layout_height="658dp"
         android:gravity="center"
+        android:text="test"
+        android:textSize="100px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

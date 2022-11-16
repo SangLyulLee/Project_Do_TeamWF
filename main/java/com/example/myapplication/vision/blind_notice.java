@@ -55,6 +55,7 @@ public class blind_notice extends AppCompatActivity {
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
+    int notice_pos;
 
     @Override
     protected void onCreate(Bundle savedIntancdState) {
@@ -200,6 +201,7 @@ public class blind_notice extends AppCompatActivity {
 
                     // 알림 알람 설정
                     //calendar.setTimeInMillis(System.currentTimeMillis());
+                    /*
                     String[] alarmRouteInfo;
                     alarmRouteInfo = get_api.getStaionBus(startRoute_cityCode, fastRoute_routeId, startRoute_nodeId).split(" ");
                     //calendar.set(Calendar.HOUR_OF_DAY, (Integer.parseInt(alarmRouteInfo[0])-2)/60);
@@ -218,9 +220,9 @@ public class blind_notice extends AppCompatActivity {
                     else {
                         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + ((Integer.parseInt(alarmRouteInfo[0])-2)* 60000L), pendingIntent);
                     }
+                    ////*/
 
-
-                    databaseReference = database.getReference().child("Notice");
+                    databaseReference = database.getReference().child("Notice_api");
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -230,48 +232,45 @@ public class blind_notice extends AppCompatActivity {
                                     break;
                                 j++;
                             }
-
-                            databaseReference = database.getReference().child("Notice_api");
-                            databaseReference.child(Integer.toString(j)).child("Uid").setValue(firebaseUser.getUid());
-                            databaseReference.child(Integer.toString(j)).child("BusNum").setValue(fastRouteInfo1);
-                            databaseReference.child(Integer.toString(j)).child("RouteId").setValue(fastRoute_routeId);
-                            databaseReference.child(Integer.toString(j)).child("SbusStopNodeId").setValue(startRoute_nodeId);
-                            databaseReference.child(Integer.toString(j)).child("EbusStopNodeId").setValue(endRoute_nodeId);
-                            databaseReference = database.getReference("member").child("UserAccount");
-                            final int pos = j;
-                            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                        if (firebaseUser.getUid().equals(snapshot.getKey())) {
-                                            database.getReference("Notice_api").child(Integer.toString(pos)).child("u_type").setValue(snapshot.child("u_type").getValue(int.class));
-                                            Intent intent = new Intent(blind_notice.this, blind_main.class);
-                                            startActivity(intent);
-                                            finish();
-                                        }
-                                    }
-                                }
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) { }
-                            });
+                            notice_pos = j;
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) { }
                     });
-                    while (true) {
-                        if (!tts.isSpeaking())
-                            break;
-                    }
-                    tts.speak("알림 신청이 완료되었습니다.", TextToSpeech.QUEUE_ADD, null);
-                    Toast.makeText(blind_notice.this, "알림 설정이 완료되었습니다.", Toast.LENGTH_SHORT).show();
-                    while (true) {
-                        if (!tts.isSpeaking())
-                            break;
-                    }
-                    Intent next_intent = new Intent(blind_notice.this, blind_wait.class);
-                    startActivity(next_intent);
-                    finish();
+
+                    databaseReference = database.getReference("member").child("UserAccount");
+                    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                if (firebaseUser.getUid().equals(snapshot.getKey())) {
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("Uid").setValue(firebaseUser.getUid());
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("BusNum").setValue(fastRouteInfo1);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("RouteId").setValue(fastRoute_routeId);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("SbusStopNodeId").setValue(startRoute_nodeId);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("EbusStopNodeId").setValue(endRoute_nodeId);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("CityCode").setValue(startRoute_cityCode);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("u_type").setValue(snapshot.child("u_type").getValue(int.class));
+                                    while (true) {
+                                        if (!tts.isSpeaking())
+                                            break;
+                                    }
+                                    tts.speak("알림 신청이 완료되었습니다.", TextToSpeech.QUEUE_ADD, null);
+                                    Toast.makeText(blind_notice.this, "알림 설정이 완료되었습니다.", Toast.LENGTH_SHORT).show();
+                                    while (true) {
+                                        if (!tts.isSpeaking())
+                                            break;
+                                    }
+                                    Intent intent = new Intent(blind_notice.this, blind_wait.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) { }
+                    });
                 }
             }
 
