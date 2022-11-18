@@ -1,7 +1,16 @@
 package com.example.myapplication.driver;
 
+import static java.lang.Math.abs;
+
+import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -9,14 +18,19 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
 import com.example.myapplication.map.BusTime;
+import com.example.myapplication.vision.blind_route;
+import com.example.myapplication.vision.get_api;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +41,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 public class DriverSelect extends AppCompatActivity {
     private ArrayList<BusTime> busTimeArray = new ArrayList<>();
@@ -40,6 +56,7 @@ public class DriverSelect extends AppCompatActivity {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
     private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
     private Date date = new Date();
+    double longitude = 0, latitude = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,13 +83,16 @@ public class DriverSelect extends AppCompatActivity {
                         dlg_start.setNegativeButton("예", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                System.out.println("snapshot.getKey() : " + snapshot.getKey());
                                 databaseReference.child(snapshot.getKey()).removeValue();
                             }
                         });
                         dlg_start.setOnCancelListener(new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialogInterface) {
-                                databaseReference.child(snapshot.getKey()).removeValue();
+                                intent = new Intent(DriverSelect.this, DriverMain.class);
+                                startActivity(intent);
+                                finish();
                             }
                         });
                         dlg_start.show();
@@ -83,6 +103,48 @@ public class DriverSelect extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
+
+        // 기사 - API 버전 등록 검사
+        databaseReference = database.getReference("Driver_api");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
+                        AlertDialog.Builder dlg_start = new AlertDialog.Builder(DriverSelect.this);
+                        dlg_start.setTitle("버스 등록 확인");
+                        dlg_start.setMessage("이미 운행 중인 버스가 있습니다. 다시 고르시겠습니까?");
+                        dlg_start.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                intent = new Intent(DriverSelect.this, DriverMain.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                        dlg_start.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                databaseReference.child(snapshot.getKey()).removeValue();
+                            }
+                        });
+                        dlg_start.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                intent = new Intent(DriverSelect.this, DriverMain.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                        dlg_start.show();
+                        break;
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+        /////////////////////
 
         ListView list = (ListView) findViewById(R.id.list_bus);
         DriverAdapter adapter = new DriverAdapter();
@@ -172,6 +234,65 @@ public class DriverSelect extends AppCompatActivity {
                         }
                     }
                 });
+            }
+        });
+
+        // 기사 - API 버전
+
+        TextView textView = (TextView) findViewById(R.id.textView9);
+        textView.setText("운행할 지역을 선택해주세요");
+        EditText editText = (EditText) findViewById(R.id.edit_busnum);
+        editText.setHint("지역을 입력하세요");
+
+        String[] api_split = get_api.getCitycode().split("\n");
+        String[] citycodeArr = new String[api_split.length], citynameArr = new String[api_split.length], citynameArr_copy = new String[api_split.length];
+        for (int i = 0; i < api_split.length; i++) {
+            String[] api_split2 = api_split[i].split(" ");
+            citycodeArr[i] = api_split2[0];
+            citynameArr[i] = api_split2[1];
+        }
+        System.arraycopy(citynameArr, 0, citynameArr_copy, 0, api_split.length);
+
+        Arrays.sort(citynameArr_copy);
+        DriverAdapter_api adapter_api = new DriverAdapter_api();
+        list.setAdapter(adapter_api);
+        for (int i=0; i<citynameArr_copy.length; i++) {
+            adapter_api.addList(citynameArr_copy[i]);
+        }
+        adapter_api.notifyDataSetChanged();
+
+        select_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                input_str = edit.getText().toString();
+                ArrayList<String> sameCitynameArr = new ArrayList<>();
+                for (int i=0; i<citynameArr_copy.length; i++) {
+                    String cityname = adapter_api.getItem(i);
+                    if (cityname.toLowerCase().contains(input_str.toLowerCase())) {
+                        sameCitynameArr.add(cityname);
+                    }
+                }
+                adapter_api.clear();
+                for (int i=0; i<sameCitynameArr.size(); i++) {
+                    adapter_api.addList(sameCitynameArr.get(i));
+                }
+                adapter_api.notifyDataSetChanged();
+            }
+        });
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
+                Intent intent = new Intent(DriverSelect.this, DriverSelect_api.class);
+                for (int i=0; i<citynameArr.length; i++) {
+                    if (citynameArr[i].equals(adapter_api.getItem(pos))) {
+                        System.out.println("citycode : " + citycodeArr[i] + ", cityname : " + citynameArr[i]);
+                        intent.putExtra("citycode", citycodeArr[i]);
+                        break;
+                    }
+                }
+                startActivity(intent);
+                finish();
             }
         });
     }

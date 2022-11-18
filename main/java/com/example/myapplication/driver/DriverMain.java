@@ -64,16 +64,6 @@ public class DriverMain extends AppCompatActivity {
 
         drv_pos = 0;
 
-        Button seat_btn = (Button) findViewById(R.id.btn_seat);
-        seat_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Toast.makeText(DriverMain.this, "wait...", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        final int[] i_pos = {0};
-
         mDatabaseRef = database.getReference("Driver");
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -387,6 +377,21 @@ public class DriverMain extends AppCompatActivity {
                         break;
                     }
                     drv_pos++;
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+
+        // 기사 - API 버전
+        mDatabaseRef = database.getReference("Driver_api");
+        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if ((firebaseUser.getUid()).equals(snapshot.child("Uid").getValue(String.class))) {
+                        //
+                    }
                 }
             }
             @Override
