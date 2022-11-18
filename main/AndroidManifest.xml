@@ -83,6 +83,9 @@
             android:name=".driver.DriverSelect"
             android:exported="true"/>
         <activity
+            android:name=".driver.DriverSelect_api"
+            android:exported="true"/>
+        <activity
             android:name=".notice.EbusSet"
             android:exported="true"/>
         <activity
