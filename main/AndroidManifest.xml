@@ -80,6 +80,9 @@
             android:name=".driver.DriverMain"
             android:exported="true"/>
         <activity
+            android:name=".driver.DriverMain_Api"
+            android:exported="true"/>
+        <activity
             android:name=".driver.DriverSelect"
             android:exported="true"/>
         <activity
@@ -210,9 +213,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".vision.blind_businfo" />
-        <activity android:name=".vision.blind_busstation" />
-        <activity android:name=".vision.selectedstation" />
         <activity
             android:name=".vision.blind_notice"
             android:exported="true">
