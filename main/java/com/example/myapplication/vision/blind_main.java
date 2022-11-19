@@ -3,6 +3,8 @@ package com.example.myapplication.vision;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -45,6 +47,8 @@ public class blind_main extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference databaseReference;
     boolean noticeBool = false;
+    SoundPool soundPool;
+    int soundID;
 
     @Override
     protected void onCreate(Bundle savedIntanceState) {
@@ -52,7 +56,15 @@ public class blind_main extends AppCompatActivity {
         setContentView(R.layout.blind_main);
 
         firebaseUser.getUid();
-
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() { //tts구현
+            @Override
+            public void onInit(int i) {
+                if (i == TextToSpeech.SUCCESS) { //tts 잘되면
+                    tts.setLanguage(Locale.KOREAN);     //한국어로 설정
+                    //tts.setSpeechRate(0.8f); //말하기 속도 지정 1.0이 기본값
+                }
+            }
+        });
         databaseReference = database.getReference().child("Notice_api");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -65,11 +77,26 @@ public class blind_main extends AppCompatActivity {
                     }
                 }
                 noticeBool = true;
+                Timer timer = new Timer();
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
+                    }
+                };
+                timer.schedule(timerTask, 1000);
+                while (true) {
+                    if (!tts.isSpeaking())
+                        break;
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
+
+        soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+        soundID = soundPool.load(this, R.raw.sound, 1);
 
         if (Build.VERSION.SDK_INT >= 23) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET,
@@ -97,36 +124,13 @@ public class blind_main extends AppCompatActivity {
                 }
             });
         }
-        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() { //tts구현
-            @Override
-            public void onInit(int i) {
-                if (i == TextToSpeech.SUCCESS) { //tts 잘되면
-                    tts.setLanguage(Locale.KOREAN);     //한국어로 설정
-                    //tts.setSpeechRate(0.8f); //말하기 속도 지정 1.0이 기본값
-                }
-            }
-        });
-
-        Timer timer = new Timer();
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
-            }
-        };
-        if (noticeBool) {
-            timer.schedule(timerTask, 1000);
-        }
-        while (true) {
-            if (!tts.isSpeaking())
-                break;
-        }
 
         // RecognizerIntent 객체에 할당할 listener 생성
         listener = new RecognitionListener() {
             @Override
             public void onReadyForSpeech(Bundle params) {
                 Toast.makeText(getApplicationContext(), "음성인식을 시작합니다.", Toast.LENGTH_SHORT).show();
+
             }
 
             @Override
