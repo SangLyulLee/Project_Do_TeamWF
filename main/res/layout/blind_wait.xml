@@ -10,7 +10,7 @@
         android:layout_width="392dp"
         android:layout_height="658dp"
         android:gravity="center"
-        android:text="test"
+        android:text="Loading..."
         android:textSize="100px"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
