@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.speech.RecognitionListener;
@@ -27,6 +28,8 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
+import com.example.myapplication.driver.DriverMain;
+import com.example.myapplication.driver.DriverSelect;
 import com.example.myapplication.map.BusTime;
 import com.example.myapplication.notice.Alarm_Reciver;
 import com.example.myapplication.notice.EbusSet;
@@ -262,9 +265,15 @@ public class blind_notice extends AppCompatActivity {
                                         if (!tts.isSpeaking())
                                             break;
                                     }
-                                    Intent intent = new Intent(blind_notice.this, blind_wait.class);
-                                    startActivity(intent);
-                                    finish();
+                                    Handler handler = new Handler();
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Intent intent = new Intent(blind_notice.this, blind_wait.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    }, 1000);
                                 }
                             }
                         }

@@ -240,6 +240,9 @@ public class get_api {
                         } else if (tag.equals("nodeord")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
+                        } else if (tag.equals("nodeid")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
                         }
                         if (tag.equals("totalCount")) {
                             xpp.next();
@@ -384,12 +387,12 @@ public class get_api {
         return buffer.toString();
     }
 
-    public static String getBusRouteNoList(String citycode, String routeNo) {
+    public static String getBusRouteNoList(String citycode, String routeNo, String pageNo) {
         System.out.println("citycode = " + citycode + "\nrouteno = " + routeNo);
         String api_url = "http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteNoList";
         String key = "zHfs9G4Ov6Oa8b8xIEKrSgJlA79ZaKBQdKaGv5kGdHBgA%2Bv%2BEG%2Fq%2F9A7EXT7JrvAmyfkUV7E7mn%2FHSniwdqHTA%3D%3D";
 
-        String url = (api_url + "?serviceKey=" + key + "&cityCode=" + citycode + "&routeNo=" + routeNo + "&numOfRows=10&pageNo=1&_type=xml");
+        String url = (api_url + "?serviceKey=" + key + "&cityCode=" + citycode + "&routeNo=" + routeNo + "&numOfRows=10&pageNo=" + pageNo + "&_type=xml");
 
         StringBuilder buffer = new StringBuilder();
 
@@ -420,6 +423,12 @@ public class get_api {
                             xpp.next();
                             buffer.append(xpp.getText());
                         }
+                        if (tag.equals("totalCount")) {
+                        xpp.next();
+                        if (Integer.parseInt(pageNo) < (Integer.parseInt(xpp.getText())/10)+1) {
+                            buffer.append(get_api.getBusRouteNoList(citycode, routeNo, Integer.toString(Integer.parseInt(pageNo)+1)));
+                        }
+                    }
                         break;
                     case XmlPullParser.TEXT:
                         break;
@@ -437,7 +446,7 @@ public class get_api {
         return buffer.toString();
     }
 
-    /*
+
     public static String getBusServiceData(String citycode, String routeid, String pageNum) {
         String api_url = "http://apis.data.go.kr/1613000/BusLcInfoInqireService/getRouteAcctoBusLcList";
         String key = "zHfs9G4Ov6Oa8b8xIEKrSgJlA79ZaKBQdKaGv5kGdHBgA%2Bv%2BEG%2Fq%2F9A7EXT7JrvAmyfkUV7E7mn%2FHSniwdqHTA%3D%3D";
@@ -468,10 +477,13 @@ public class get_api {
 
                     case XmlPullParser.START_TAG:
                         tag = xpp.getName();
-                        if (tag.equals("nodenm")) {
+                        if (tag.equals("nodeid")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         } else if (tag.equals("nodeord")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        } else if (tag.equals("vehicleno")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         }
@@ -499,6 +511,5 @@ public class get_api {
         }
         return buffer.toString();
     }
-    */
 }
 
