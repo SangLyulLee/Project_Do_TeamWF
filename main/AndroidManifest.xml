@@ -61,13 +61,25 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
+            android:name=".api_ver.MainActivity_api"
+            android:exported="true" />
+        <activity
             android:name=".Menu1"
+            android:exported="true" />
+        <activity
+            android:name=".api_ver.Menu1_api"
             android:exported="true" />
         <activity
             android:name=".Menu2"
             android:exported="true" />
         <activity
+            android:name=".api_ver.Menu2_api"
+            android:exported="true" />
+        <activity
             android:name=".Menu3"
+            android:exported="true" />
+        <activity
+            android:name=".api_ver.Menu3_api"
             android:exported="true" />
         <activity
         android:name=".SearchMenu1"
@@ -92,10 +104,19 @@
             android:name=".notice.EbusSet"
             android:exported="true"/>
         <activity
+            android:name=".api_notice.EbusSet_api"
+            android:exported="true"/>
+        <activity
             android:name=".notice.StimeSet"
             android:exported="true"/>
         <activity
+            android:name=".api_notice.Node_ArriInfo"
+            android:exported="true"/>
+        <activity
             android:name=".notice.NoticeRe"
+            android:exported="true"/>
+        <activity
+            android:name=".api_notice.NoticeRe_api"
             android:exported="true"/>
         <activity
             android:name=".map.RouteMapActivity"
@@ -120,9 +141,24 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".api_notice.Alarm_Reciver_api"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".notice.Alarm_Service"
+            android:enabled="true"
+            android:exported="false"/>
+        <service
+            android:name=".api_notice.Alarm_Service_api"
             android:enabled="true"
             android:exported="false"/>
 
@@ -137,8 +173,26 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".driver.Driver_Alarm_api"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".driver.Driver_Service"
+            android:enabled="true"
+            android:exported="false"/>
+
+        <service
+            android:name=".driver.Driver_Service_api"
             android:enabled="true"
             android:exported="false"/>
 
