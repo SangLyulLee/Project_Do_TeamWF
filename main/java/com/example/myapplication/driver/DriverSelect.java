@@ -56,7 +56,7 @@ public class DriverSelect extends AppCompatActivity {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH");
     private SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("mm");
     private Date date = new Date();
-    Boolean ApiUse = false;
+    Boolean ApiUse = false, api_error = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +65,7 @@ public class DriverSelect extends AppCompatActivity {
         ListView list = (ListView) findViewById(R.id.list_bus);
         EditText edit = (EditText) findViewById(R.id.edit_busnum);
         Button select_btn = (Button) findViewById(R.id.btn_select);
+        Button api_button = (Button) findViewById(R.id.api_button);
 
         databaseReference = database.getReference("Driver");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -148,15 +149,104 @@ public class DriverSelect extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
-        /////////////////////
-        if (!ApiUse) {
-            DriverAdapter adapter = new DriverAdapter();
-            list.setAdapter(adapter);
 
-            select_btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    input_str = edit.getText().toString();
+        /////////////////////
+
+        customMode(list, edit, select_btn);
+
+        api_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (api_button.getText().equals("API MODE")) {
+                    api_button.setText("CUSTOM");
+                    // 기사 - API 버전
+                    TextView textView = (TextView) findViewById(R.id.textView9);
+                    textView.setText("운행할 지역을 선택해주세요");
+                    EditText editText = (EditText) findViewById(R.id.edit_busnum);
+                    editText.setHint("지역을 입력하세요");
+
+                    String[] api_split = get_api.getCitycode().split("\n");
+                    String[] citycodeArr = new String[api_split.length], citynameArr = new String[api_split.length], citynameArr_copy = new String[api_split.length];
+                    for (int i = 0; i < api_split.length; i++) {
+                        String[] api_split2 = api_split[i].split(" ");
+                        if (api_split2.length == 1) {
+                            Toast.makeText(DriverSelect.this, "API 서버 오류.", Toast.LENGTH_SHORT).show();
+                            api_error = true;
+                        }
+                        else {
+                            citycodeArr[i] = api_split2[0];
+                            citynameArr[i] = api_split2[1];
+                        }
+                    }
+                    if (!api_error) {
+                        System.arraycopy(citynameArr, 0, citynameArr_copy, 0, api_split.length);
+
+                        Arrays.sort(citynameArr_copy);
+                        DriverAdapter_api adapter_api = new DriverAdapter_api();
+                        list.setAdapter(adapter_api);
+                        for (int i = 0; i < citynameArr_copy.length; i++) {
+                            adapter_api.addList(citynameArr_copy[i]);
+                        }
+                        adapter_api.notifyDataSetChanged();
+
+                        select_btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                input_str = edit.getText().toString();
+                                ArrayList<String> sameCitynameArr = new ArrayList<>();
+                                for (int i = 0; i < citynameArr_copy.length; i++) {
+                                    String cityname = adapter_api.getItem(i);
+                                    if (cityname.toLowerCase().contains(input_str.toLowerCase())) {
+                                        sameCitynameArr.add(cityname);
+                                    }
+                                }
+                                adapter_api.clear();
+                                for (int i = 0; i < sameCitynameArr.size(); i++) {
+                                    adapter_api.addList(sameCitynameArr.get(i));
+                                }
+                                adapter_api.notifyDataSetChanged();
+                            }
+                        });
+
+                        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
+                                Intent intent = new Intent(DriverSelect.this, DriverSelect_api.class);
+                                for (int i = 0; i < citynameArr.length; i++) {
+                                    if (citynameArr[i].equals(adapter_api.getItem(pos))) {
+                                        System.out.println("citycode : " + citycodeArr[i] + ", cityname : " + citynameArr[i]);
+                                        intent.putExtra("citycode", citycodeArr[i]);
+                                        break;
+                                    }
+                                }
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                    }
+                }
+                else if (api_button.getText().equals("CUSTOM")) {
+                    api_button.setText("API MODE");
+                    customMode(list, edit, select_btn);
+                }
+            }
+        });
+    }
+
+    final void customMode(ListView list, EditText edit, Button select_btn) {
+        DriverAdapter adapter = new DriverAdapter();
+        list.setAdapter(adapter);
+
+        select_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                input_str = edit.getText().toString();
+                if (input_str.equals("")) {
+                    Toast.makeText(DriverSelect.this, "버스 번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                    adapter.list_clear();
+                    adapter.notifyDataSetChanged();
+                }
+                else {
 
                     databaseReference = database.getReference("BusTime").child(input_str);
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -238,66 +328,7 @@ public class DriverSelect extends AppCompatActivity {
                         }
                     });
                 }
-            });
-        }
-        else {
-            // 기사 - API 버전
-            TextView textView = (TextView) findViewById(R.id.textView9);
-            textView.setText("운행할 지역을 선택해주세요");
-            EditText editText = (EditText) findViewById(R.id.edit_busnum);
-            editText.setHint("지역을 입력하세요");
-
-            String[] api_split = get_api.getCitycode().split("\n");
-            String[] citycodeArr = new String[api_split.length], citynameArr = new String[api_split.length], citynameArr_copy = new String[api_split.length];
-            for (int i = 0; i < api_split.length; i++) {
-                String[] api_split2 = api_split[i].split(" ");
-                citycodeArr[i] = api_split2[0];
-                citynameArr[i] = api_split2[1];
             }
-            System.arraycopy(citynameArr, 0, citynameArr_copy, 0, api_split.length);
-
-            Arrays.sort(citynameArr_copy);
-            DriverAdapter_api adapter_api = new DriverAdapter_api();
-            list.setAdapter(adapter_api);
-            for (int i = 0; i < citynameArr_copy.length; i++) {
-                adapter_api.addList(citynameArr_copy[i]);
-            }
-            adapter_api.notifyDataSetChanged();
-
-            select_btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    input_str = edit.getText().toString();
-                    ArrayList<String> sameCitynameArr = new ArrayList<>();
-                    for (int i = 0; i < citynameArr_copy.length; i++) {
-                        String cityname = adapter_api.getItem(i);
-                        if (cityname.toLowerCase().contains(input_str.toLowerCase())) {
-                            sameCitynameArr.add(cityname);
-                        }
-                    }
-                    adapter_api.clear();
-                    for (int i = 0; i < sameCitynameArr.size(); i++) {
-                        adapter_api.addList(sameCitynameArr.get(i));
-                    }
-                    adapter_api.notifyDataSetChanged();
-                }
-            });
-
-            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
-                    Intent intent = new Intent(DriverSelect.this, DriverSelect_api.class);
-                    for (int i = 0; i < citynameArr.length; i++) {
-                        if (citynameArr[i].equals(adapter_api.getItem(pos))) {
-                            System.out.println("citycode : " + citycodeArr[i] + ", cityname : " + citynameArr[i]);
-                            intent.putExtra("citycode", citycodeArr[i]);
-                            break;
-                        }
-                    }
-                    startActivity(intent);
-                    finish();
-                }
-            });
-        }
+        });
     }
 }

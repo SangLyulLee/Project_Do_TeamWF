@@ -25,6 +25,10 @@ public class DriverAdapter extends BaseAdapter {
     @Override
     public long getItemId(int i) { return 0; }
 
+    public void list_clear() {
+        arrayList.clear();
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Context context = parent.getContext();

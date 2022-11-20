@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <ListView
+        android:id="@+id/nodeArriInfo_list"
+        android:layout_width="match_parent"
+        android:layout_height="449dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.578"
+        tools:listitem="@layout/list_item3" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:layout_constraintBottom_toTopOf="@+id/nodeArriInfo_list"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="버스 번호"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:translationX="10dp" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="150dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="남은 정류장 수"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:translationX="40dp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="남은 시간"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:translationX="60dp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

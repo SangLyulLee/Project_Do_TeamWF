@@ -117,11 +117,23 @@ public class get_api {
                     case XmlPullParser.START_TAG:
                         tag = xpp.getName();
 
-                        if (tag.equals("arrtime")) {
+                        if (tag.equals("arrprevstationcnt")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        }
+                        else if (tag.equals("arrtime")) {
                             xpp.next();
                             buffer.append(Integer.parseInt(xpp.getText())/60 + " ");
                         }
+                        else if (tag.equals("nodenm")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        }
                         else if (tag.equals("routeid")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        }
+                        else if (tag.equals("routeno")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         }
@@ -234,13 +246,27 @@ public class get_api {
 
                     case XmlPullParser.START_TAG:
                         tag = xpp.getName();
-                        if (tag.equals("nodeno")) {
+                        if (tag.equals("gpslati")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        }
+                        else if (tag.equals("gpslong")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        }
+                        else if (tag.equals("nodeid")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        } else if (tag.equals("nodenm")) {
+                            xpp.next();
+                            buffer.append(xpp.getText() + " ");
+                        } else if (tag.equals("nodeno")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         } else if (tag.equals("nodeord")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
-                        } else if (tag.equals("nodeid")) {
+                        } else if (tag.equals("updowncd")) {
                             xpp.next();
                             buffer.append(xpp.getText() + " ");
                         }
@@ -388,7 +414,7 @@ public class get_api {
     }
 
     public static String getBusRouteNoList(String citycode, String routeNo, String pageNo) {
-        System.out.println("citycode = " + citycode + "\nrouteno = " + routeNo);
+        //System.out.println("citycode = " + citycode + "\nrouteno = " + routeNo);
         String api_url = "http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteNoList";
         String key = "zHfs9G4Ov6Oa8b8xIEKrSgJlA79ZaKBQdKaGv5kGdHBgA%2Bv%2BEG%2Fq%2F9A7EXT7JrvAmyfkUV7E7mn%2FHSniwdqHTA%3D%3D";
 
@@ -421,8 +447,16 @@ public class get_api {
 
                         if (tag.equals("routeid")) {
                             xpp.next();
-                            buffer.append(xpp.getText());
+                            buffer.append(xpp.getText() + " ");
+                        } else if (tag.equals("routeno")) {
+                            xpp.next();
+                            String data = xpp.getText();
+                            if (routeNo.equals(data)) {
+                                buffer.append(data + " ");
+                                return buffer.toString();
+                            }
                         }
+
                         if (tag.equals("totalCount")) {
                         xpp.next();
                         if (Integer.parseInt(pageNo) < (Integer.parseInt(xpp.getText())/10)+1) {
@@ -490,7 +524,7 @@ public class get_api {
                         if (tag.equals("totalCount")) {
                             xpp.next();
                             if (Integer.parseInt(pageNum) < (Integer.parseInt(xpp.getText())/10)+1) {
-                                buffer.append(get_api.getBusRoute(citycode, routeid, Integer.toString(Integer.parseInt(pageNum)+1)));
+                                buffer.append(get_api.getBusServiceData(citycode, routeid, Integer.toString(Integer.parseInt(pageNum)+1)));
                             }
                         }
                         break;

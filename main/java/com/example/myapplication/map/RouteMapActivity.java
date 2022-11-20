@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
+import com.example.myapplication.vision.get_api;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -58,51 +59,82 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
         mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(34.7936, 126.3653), true);
 
         final int busNum = getIntent().getIntExtra("busNum", 0);
+        String apibool = getIntent().getStringExtra("api_bool");
 
-        ArrayList<String> busRoute = new ArrayList<>();
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                busRoute.clear();
-                for (DataSnapshot snapshot : dataSnapshot.child(Integer.toString(busNum)).getChildren()) {
-                    busRoute.add(snapshot.getValue(String.class));
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-
-        databaseReference = database.getReference("BusStop");
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                MapPolyline polyline = new MapPolyline();
-                polyline.setTag(1000);
-                polyline.setLineColor(Color.argb(255, 255, 51, 0));
-                for (int i=0; i<busRoute.size(); i++) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {  // 반복문으로 데이터 리스트 추출
-                        if (snapshot.child("busStopNum").getValue(String.class).equals(busRoute.get(i))) {
-                            BusStop busStop = snapshot.getValue(BusStop.class);     // 만들어둔 BusStop 객체에 데이터를 담음
-                            MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(busStop.getIat()), Double.parseDouble(busStop.getLng()));
-                            marker.setItemName(busStop.getBusStopName()+"("+busStop.getBusStopNum()+")");
-                            marker.setTag(0);
-                            marker.setMapPoint(mapPoint);
-                            marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
-                            marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-                            mapView.addPOIItem(marker);
-                            polyline.addPoint(mapPoint);
-                        }
+        if (apibool.equals("0")) {
+            ArrayList<String> busRoute = new ArrayList<>();
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    busRoute.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.child(Integer.toString(busNum)).getChildren()) {
+                        busRoute.add(snapshot.getValue(String.class));
                     }
                 }
-                mapView.addPolyline(polyline);
-                MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
-                int padding = 100;
-                mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
+
+            databaseReference = database.getReference("BusStop");
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    MapPolyline polyline = new MapPolyline();
+                    polyline.setTag(1000);
+                    polyline.setLineColor(Color.argb(255, 255, 51, 0));
+                    for (int i = 0; i < busRoute.size(); i++) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {  // 반복문으로 데이터 리스트 추출
+                            if (snapshot.child("busStopNum").getValue(String.class).equals(busRoute.get(i))) {
+                                BusStop busStop = snapshot.getValue(BusStop.class);     // 만들어둔 BusStop 객체에 데이터를 담음
+                                MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(busStop.getIat()), Double.parseDouble(busStop.getLng()));
+                                marker.setItemName(busStop.getBusStopName() + "(" + busStop.getBusStopNum() + ")");
+                                marker.setTag(0);
+                                marker.setMapPoint(mapPoint);
+                                marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+                                marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+                                mapView.addPOIItem(marker);
+                                polyline.addPoint(mapPoint);
+                            }
+                        }
+                    }
+                    mapView.addPolyline(polyline);
+                    MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
+                    int padding = 100;
+                    mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                }
+            });
+        }
+        else if (apibool.equals("1")) {
+            String citycode = getIntent().getStringExtra("citycode");
+            String routeid = getIntent().getStringExtra("routeid");
+
+            MapPolyline polyline = new MapPolyline();
+            polyline.setTag(1000);
+            polyline.setLineColor(Color.argb(255, 255, 51, 0));
+
+            String[] api_split = get_api.getBusRoute(citycode, routeid, "1").split("\n");
+            for (int i=0; i<api_split.length; i++) {
+                String[] api_split2 = api_split[i].split(" ");
+                MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
+                marker.setItemName(api_split2[3] + "(" + api_split2[4] + ")");
+                marker.setTag(0);
+                marker.setMapPoint(mapPoint);
+                marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+                marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+                mapView.addPOIItem(marker);
+                polyline.addPoint(mapPoint);
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
-        });
+            mapView.addPolyline(polyline);
+            MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
+            int padding = 100;
+            mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+        }
     }
 
     @Override

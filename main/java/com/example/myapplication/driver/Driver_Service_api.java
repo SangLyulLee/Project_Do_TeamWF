@@ -14,10 +14,9 @@ import android.os.Vibrator;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 
-public class Driver_Service extends Service {
+public class Driver_Service_api extends Service {
     MediaPlayer mediaPlayer;
 
     @Nullable
@@ -35,7 +34,7 @@ public class Driver_Service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if( Build.VERSION.SDK_INT >= 26 )
         {
-            Intent clsIntent = new Intent( this, DriverMain.class );
+            Intent clsIntent = new Intent( this, DriverMain_Api.class );
             PendingIntent pendingIntent;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
