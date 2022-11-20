@@ -68,7 +68,6 @@ public class blind_route extends AppCompatActivity {
         String speech_str = getIntent().getStringExtra("speech").toString();
 
         //gps 기반 위치 파악
-        //테스트용으로 사용한 좌표 나중에 주석 표기 지우기
         if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(blind_route.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
@@ -221,24 +220,27 @@ public class blind_route extends AppCompatActivity {
             start_route = get_api.getBusStationRoute(start_station_list[k][0], start_station_list[k][1]).split("\n");
             //                                             도시코드            ,         정류소ID
         //    System.out.println("start_route : " + start_route[0]);
-            String[][] sRouteInfo = new String[start_route.length][3];
+            String[][] sRouteInfo = new String[start_route.length][6];
             if (start_route[0].equals("")) {
                 System.out.println(k + 1 + "번 출발지에 도착 예정인 버스가 없습니다.");
                 continue;
             }
-            // [0] : 남은 시간(분) / [1] : routeID
+            // [0] : 남은 정류장 수 / [1] : 남은 시간(분) / [2] : nodenm / [3] : routeID / [4] : routeno / [5] : 버스타입
             for (int i = 0; i < start_route.length; i++) {
                 String[] sBusSplit = start_route[i].split(" ");
                 sRouteInfo[i][0] = sBusSplit[0];
                 sRouteInfo[i][1] = sBusSplit[1];
                 sRouteInfo[i][2] = sBusSplit[2];
+                sRouteInfo[i][3] = sBusSplit[3];
+                sRouteInfo[i][4] = sBusSplit[4];
+                sRouteInfo[i][5] = sBusSplit[5];
             //    System.out.println("sRouteInfo[" + i + "] : " + sRouteInfo[i][0] + ", " + sRouteInfo[i][1]);
             }
 
             String[] sBusRoute;
             for (int i = 0; i < sRouteInfo.length; i++) {
                 // i 루트
-                sBusRoute = get_api.getBusRoute(start_station_list[k][0], sRouteInfo[i][1], "1").split("\n");
+                sBusRoute = get_api.getBusRoute(start_station_list[k][0], sRouteInfo[i][3], "1").split("\n");
             //    System.out.println("sBusRoute.length = " + sBusRoute.length);
             //    System.out.println("sBusRoute0 : " + sBusRoute[0]);
             //    System.out.println("sBusRoute1 : " + sBusRoute[1]);
@@ -255,7 +257,7 @@ public class blind_route extends AppCompatActivity {
                     // 같은 루트 내에 두 정류장이 존재하는가
                     //for (routeNum=0; routeNum < sBusRoute.length; routeNum++) {
                     //    sBR_node = sBusRoute[routeNum].split(" ");
-                    if (sBR_node[1].equals(start_station_list[k][3])) {
+                    if (sBR_node[4].equals(start_station_list[k][3])) {
                         System.out.println("출발 정류장 존재, " + routeNum + 1);
                         sNode_route = true;
                         sBR_index = routeNum;
@@ -265,7 +267,7 @@ public class blind_route extends AppCompatActivity {
                             for (des_index = 0; des_index < des_station_list.length; des_index++) {
                             //    System.out.println("sBR_node[1] = " + sBR_node[1]);
                             //    System.out.println("des_station_list[" + des_index + "][3] = " + des_station_list[des_index][3]);
-                                if (sBR_node[1].equals(des_station_list[des_index][3])) {
+                                if (sBR_node[4].equals(des_station_list[des_index][3])) {
                                     System.out.println("도착 정류장 존재, " + routeNum + 1);
                                     eNode_route = true;
                                     eBR_index = routeNum;
@@ -281,14 +283,14 @@ public class blind_route extends AppCompatActivity {
                     if (sNode_route && eNode_route) {
                         // 루트에서 출발 정류장이 도착 정류장보다 먼저 지나가는가
                         if (sBR_index + 1 < eBR_index + 1) {
-                            int routeTime = Integer.parseInt(sRouteInfo[i][0]) + ((eBR_index - sBR_index) * 2);
+                            int routeTime = Integer.parseInt(sRouteInfo[i][1]) + ((eBR_index - sBR_index) * 2);
                             //          도착남은시간             +    (출발~도착 정류장 수 * 2)
                             if (fastTime == 0) {
                     //            System.out.println("fastTime = 0");
                                 fastTime = routeTime;
                                 fastRoute_cityCode = start_station_list[k][0];
                                 fastRoute_nodeId = start_station_list[k][1];
-                                fastRoute_routeId = sRouteInfo[i][1];
+                                fastRoute_routeId = sRouteInfo[i][3];
                                 startRoute_nodenm = start_station_list[k][2];
                                 startRoute_nodeId = start_station_list[k][1];
                                 endRoute_nodenm = des_station_list[des_index][2];
@@ -299,7 +301,7 @@ public class blind_route extends AppCompatActivity {
                                     fastTime = routeTime;
                                     fastRoute_cityCode = start_station_list[k][0];
                                     fastRoute_nodeId = start_station_list[k][1];
-                                    fastRoute_routeId = sRouteInfo[i][1];
+                                    fastRoute_routeId = sRouteInfo[i][3];
                                     startRoute_nodenm = start_station_list[k][2];
                                     endRoute_nodenm = des_station_list[des_index][2];
                                     endRoute_nodeId = des_station_list[des_index][1];

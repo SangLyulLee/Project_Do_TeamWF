@@ -251,6 +251,7 @@ public class Menu2 extends AppCompatActivity {
                     public void onClick(View view) {
                         Intent intentMap = new Intent(Menu2.this, RouteMapActivity.class);
                         intentMap.putExtra("busNum", Integer.parseInt(input_str));
+                        intentMap.putExtra("api_bool", "0");
                         startActivity(intentMap);
                     }
                 });

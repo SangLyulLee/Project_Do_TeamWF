@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.api_ver.MainActivity_api;
 import com.example.myapplication.kakaomap.kakaomapmain;
 import com.example.myapplication.map.BusTime;
 import com.example.myapplication.notice.Alarm_Cancle;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         Button button2 = (Button) findViewById(R.id.button2);
         Button button3 = (Button) findViewById(R.id.button3);
         Button button4 = (Button) findViewById(R.id.button4);
+        Button button5 = (Button) findViewById(R.id.button_api);
 
         /* name 출력 */
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -69,6 +71,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
             }
+        });
+
+        mDatabaseRef = database.getReference("Notice_api");
+        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                        Intent intent = new Intent(MainActivity.this, MainActivity_api.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
 
         /* 버튼 기능 */
@@ -99,6 +117,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, kakaomapmain.class);
+                startActivity(intent);
+            }
+        });
+
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MainActivity_api.class);
                 startActivity(intent);
             }
         });

@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
+import com.example.myapplication.api_notice.Alarm_Reciver_api;
 import com.example.myapplication.driver.DriverMain;
 import com.example.myapplication.driver.DriverSelect;
 import com.example.myapplication.map.BusTime;
@@ -56,8 +57,6 @@ public class blind_notice extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
-    private AlarmManager alarmManager;
-    private PendingIntent pendingIntent;
     int notice_pos;
 
     @Override
@@ -65,9 +64,7 @@ public class blind_notice extends AppCompatActivity {
         super.onCreate(savedIntancdState);
         setContentView(layout.blind_notice);
 
-        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        //final Calendar calendar = Calendar.getInstance();
-        final Intent my_intent = new Intent(blind_notice.this, Alarm_Reciver.class);
+        final Intent my_intent = new Intent(blind_notice.this, Alarm_Reciver_api.class);
 
         if (Build.VERSION.SDK_INT >= 23) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET,
@@ -201,29 +198,6 @@ public class blind_notice extends AppCompatActivity {
 
                 if (matchStr.toString().equals("네")) {
                     tts.speak("해당 루트로 알림을 신청합니다.", TextToSpeech.QUEUE_ADD, null);
-
-                    // 알림 알람 설정
-                    //calendar.setTimeInMillis(System.currentTimeMillis());
-                    /*
-                    String[] alarmRouteInfo;
-                    alarmRouteInfo = get_api.getStaionBus(startRoute_cityCode, fastRoute_routeId, startRoute_nodeId).split(" ");
-                    //calendar.set(Calendar.HOUR_OF_DAY, (Integer.parseInt(alarmRouteInfo[0])-2)/60);
-                    //calendar.set(Calendar.MINUTE, (Integer.parseInt(alarmRouteInfo[0])-2)%60);
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        pendingIntent = PendingIntent.getBroadcast(blind_notice.this, 0, my_intent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                    }
-                    else {
-                        pendingIntent = PendingIntent.getBroadcast(blind_notice.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    }
-
-                    if (Build.VERSION.SDK_INT >= 23) {
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + ((Integer.parseInt(alarmRouteInfo[0])-2)* 60000L), pendingIntent);
-                    }
-                    else {
-                        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + ((Integer.parseInt(alarmRouteInfo[0])-2)* 60000L), pendingIntent);
-                    }
-                    ////*/
 
                     databaseReference = database.getReference().child("Notice_api");
                     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {

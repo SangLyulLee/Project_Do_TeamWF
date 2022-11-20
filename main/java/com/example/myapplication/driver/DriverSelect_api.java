@@ -29,7 +29,7 @@ public class DriverSelect_api extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
-    int data_pos, api_data_pos;
+    int data_pos;
     boolean searchBool = false;
 
     @Override
@@ -52,13 +52,11 @@ public class DriverSelect_api extends AppCompatActivity {
                 }
                 else {
                     String[] api_split = get_api.getBusRouteNoList(citycode, input_str, "1").split("\n");
-                    for (int i = 0; i < api_split.length; i++) {
-                        if (api_split[i].equals(input_str)) {
-                            api_data_pos = i;
-                            searchBool = true;
-                            break;
-                        }
+                    String[] api_split2 = api_split[api_split.length-1].split(" ");
+                    if (api_split2[1].equals(input_str)) {
+                        searchBool = true;
                     }
+
                     if (!searchBool) {
                         System.out.println("버스 없음");
                         Toast.makeText(DriverSelect_api.this, "해당 버스 번호는 없는 버스 번호입니다.\n올바른 버스 번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
@@ -89,7 +87,7 @@ public class DriverSelect_api extends AppCompatActivity {
                                         data_pos = j;
 
                                         databaseReference.child(Integer.toString(data_pos)).child("Uid").setValue(firebaseUser.getUid());
-                                        databaseReference.child(Integer.toString(data_pos)).child("routeid").setValue(api_split[0]);
+                                        databaseReference.child(Integer.toString(data_pos)).child("routeid").setValue(api_split2[0]);
                                         databaseReference.child(Integer.toString(data_pos)).child("vehicleno").setValue(input_vehino);
                                         databaseReference.child(Integer.toString(data_pos)).child("citycode").setValue(citycode);
                                     }
