@@ -228,6 +228,7 @@ public class blind_notice extends AppCompatActivity {
                                     database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("SbusStopNodeId").setValue(startRoute_nodeId);
                                     database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("EbusStopNodeId").setValue(endRoute_nodeId);
                                     database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("CityCode").setValue(startRoute_cityCode);
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("busRide").setValue("0");
                                     database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("u_type").setValue(snapshot.child("u_type").getValue(int.class));
                                     while (true) {
                                         if (!tts.isSpeaking())

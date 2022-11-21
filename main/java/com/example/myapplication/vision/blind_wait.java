@@ -1,30 +1,26 @@
 package com.example.myapplication.vision;
 
-import static com.example.myapplication.vision.get_api.getStaionBusData;
+import static com.example.myapplication.api_ver.get_api.getStaionBusData;
 
 import android.app.AlarmManager;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 
 import com.example.myapplication.R;
 import com.example.myapplication.api_notice.Alarm_Reciver_api;
-import com.example.myapplication.notice.Alarm_Reciver;
-import com.example.myapplication.notice.Notice;
-import com.example.myapplication.notice.NoticeApi;
+import com.example.myapplication.api_notice.NoticeApi;
+import com.example.myapplication.api_ver.get_api;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,14 +29,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import okhttp3.Route;
 
 public class blind_wait extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -56,7 +47,7 @@ public class blind_wait extends AppCompatActivity {
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
     TextToSpeech tts;
-    String sNodeord = null, eNodeord, getOnVehicleNo, nowNodeOrd;
+    String sNodeord = null, eNodeord, nowNodeOrd;
 
     @Override
     protected void onCreate(Bundle savedIntancdState) {
@@ -124,8 +115,7 @@ public class blind_wait extends AppCompatActivity {
                     busData = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getSbusStopNodeId()).split("\n");
                     if (busData.length == 0) {
                         textView.setText("API 서버 오류... 대기중");
-                    }
-                    else {
+                    } else {
                         for (int i = 0; i < busData.length; i++) {
                             busData_list = busData[i].split(" ");
                             // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
@@ -142,20 +132,29 @@ public class blind_wait extends AppCompatActivity {
                         textView.setText("탑승 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "\n남은 정류장 수 : " + busData_fast[0] + "\n남은 시간 : " + busData_fast[1]);
                         if (busData_fast[0].equals("1")) {
                             busRide = true;
-                            tts.speak("잠시 후 버스가 도착할 예정입니다. 탑승을 준비해주세요.", TextToSpeech.QUEUE_ADD, null);
+                            Handler handler = new Handler(Looper.getMainLooper());
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    tts.speak("잠시 후 버스가 도착할 예정입니다. 탑승을 준비해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                }
+                            }, 0);
 
                             Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                             vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
+                            database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("busRide").setValue("1");
 
                             String[] busServiceData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
                             for (int i = 0; i < busServiceData.length; i++) {
                                 String[] busSD_List = busServiceData[i].split(" ");
                                 if (busSD_List[1].equals(Integer.toString(Integer.parseInt(sNodeord) - 1))) {
-                                    getOnVehicleNo = busSD_List[2];
+                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("Vehicleno").setValue(busSD_List[2]);
                                     break;
                                 }
                             }
 
+                            /*
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 pendingIntent = PendingIntent.getBroadcast(blind_wait.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                             } else {
@@ -166,55 +165,58 @@ public class blind_wait extends AppCompatActivity {
                                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
                             } else {
                                 alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
-                            }
+                            }*/
 
                         }
                     }
-                }
-                else {
-                    String[] busData;
-                    busData = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getEbusStopNodeId()).split("\n");
-                    if (busData.length == 0) {
-                        textView.setText("API 서버 오류... 대기중");
+                } else {
+                    if (first_bool) {
+                        fast_arrp = busData_fast[0];
+                        first_bool = false;
                     }
-                    else {
-                        for (int i = 0; i < busData.length; i++) {
-                            busData_list = busData[i].split(" ");
-                            // [0]:남은시간, [1]:버스번호, [2]:정류장명, [3]:남은정류장수
-                            if (i == 0) {
-                                busData_arrt = busData_list[1];
-                                busData_fast = busData_list;
-                            } else {
-                                if (Integer.parseInt(busData_arrt) > Integer.parseInt(busData_list[1])) {
-                                    busData_arrt = busData_list[1];
-                                    busData_fast = busData_list;
-                                }
+                    if (!fast_arrp.equals(busData_fast[3])) {
+                        String[] RouteposData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
+                        for (int i = 0; i < RouteposData.length; i++) {
+                            String[] Routepos_List = RouteposData[i].split(" ");
+                            if (Routepos_List[2].equals(noticeData.getVehicleno())) {
+                                nowNodeOrd = Routepos_List[1];
+                                break;
                             }
                         }
-                        if (first_bool) {
-                            fast_arrp = busData_fast[0];
-                            first_bool = false;
-                        }
-                        if (!fast_arrp.equals(busData_fast[3])) {
-                            textView.setText("하차 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "\n남은 정류장 수 : " + busData_fast[0] + "\n남은 시간 : " + busData_fast[1]);
 
-                            if (busData_fast[0].equals("1")) {
-                                String[] busServiceData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
-                                for (int i = 0; i < busServiceData.length; i++) {
-                                    String[] busSD_List = busServiceData[i].split(" ");
-                                    if (getOnVehicleNo.equals(busSD_List[2])) {
-                                        nowNodeOrd = busSD_List[1];
-                                        break;
-                                    }
-                                }
-                                if (nowNodeOrd.equals(Integer.toString(Integer.parseInt(eNodeord) - 1))) {
+                        String[] busData;
+                        busData = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getEbusStopNodeId()).split("\n");
+                        if (busData.length == 0) {
+                            textView.setText("API 서버 오류... 대기중");
+                        } else {
+                            for (int i = 0; i < busData.length; i++) {
+                                busData_list = busData[i].split(" ");
+                                // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
+                                if (Integer.parseInt(busData_list[0]) + Integer.parseInt(nowNodeOrd) == Integer.parseInt(eNodeord)) {
+                                    textView.setText("하차 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3]);
+                                    if (busData_fast[0].equals("1")) {
+                                        String[] busServiceData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
+                                        for (int j = 0; j < busServiceData.length; j++) {
+                                            String[] busSD_List = busServiceData[j].split(" ");
+                                            if (noticeData.getVehicleno().equals(busSD_List[2])) {
+                                                nowNodeOrd = busSD_List[1];
+                                                break;
+                                            }
+                                        }
+                                        if (nowNodeOrd.equals(Integer.toString(Integer.parseInt(eNodeord) - 1))) {
+                                            busRide = false;
+                                            Handler handler = new Handler(Looper.getMainLooper());
+                                            handler.postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    tts.speak("잠시 후 목적지에 도착할 예정입니다. 하차를 준비해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                                }
+                                            }, 0);
 
-                                    busRide = false;
-                                    tts.speak("잠시 후 목적지에 도착할 예정입니다. 하차를 준비해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                            Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                            vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
 
-                                    Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                    vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
-
+                                    /*
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                         pendingIntent = PendingIntent.getBroadcast(blind_wait.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                                     } else {
@@ -226,16 +228,18 @@ public class blind_wait extends AppCompatActivity {
                                     } else {
                                         alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
                                     }
-
-                                    while (true) {
-                                        if (!tts.isSpeaking()) {
-                                            break;
+                                    */
+                                            while (true) {
+                                                if (!tts.isSpeaking()) {
+                                                    break;
+                                                }
+                                            }
+                                            database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
+                                            Intent finish_intent = new Intent(blind_wait.this, blind_main.class);
+                                            startActivity(finish_intent);
+                                            finish();
                                         }
                                     }
-                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
-                                    Intent finish_intent = new Intent(blind_wait.this, blind_main.class);
-                                    startActivity(finish_intent);
-                                    finish();
                                 }
                             }
                         }

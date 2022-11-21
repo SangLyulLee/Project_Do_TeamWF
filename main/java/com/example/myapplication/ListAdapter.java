@@ -64,7 +64,13 @@ public class ListAdapter extends BaseAdapter {
 
     public void setListImg(int i, Drawable img) { route_list.get(i).setRoute_image(img); }
 
+    public void setListImg2(int i, Drawable img) { route_list.get(i).setRoute_image2(img); }
+
     public void list_clear() {
         route_list.clear();
+    }
+
+    public void remove(int i) {
+        route_list.remove(i);
     }
 }

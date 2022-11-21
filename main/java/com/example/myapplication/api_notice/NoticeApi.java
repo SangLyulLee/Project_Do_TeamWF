@@ -1,4 +1,4 @@
-package com.example.myapplication.notice;
+package com.example.myapplication.api_notice;
 
 public class NoticeApi {
     private String BusNum;
@@ -7,7 +7,9 @@ public class NoticeApi {
     private String EbusStopNodeId;
     private String CityCode;
     private String Uid;
+    private String Vehicleno;
     private int u_type;
+    private String busRide;
 
     public NoticeApi() {
         BusNum = "1";
@@ -17,6 +19,8 @@ public class NoticeApi {
         CityCode = "1";
         Uid = "1";
         u_type = 0;
+        Vehicleno = "1";
+        busRide = "";
     }
 
     public String getBusNum() {
@@ -69,5 +73,21 @@ public class NoticeApi {
 
     public void setU_type(int u_type) {
         this.u_type = u_type;
+    }
+
+    public String getVehicleno() {
+        return Vehicleno;
+    }
+
+    public void setVehicleno(String Vehicleno) {
+        this.Vehicleno = Vehicleno;
+    }
+
+    public String getbusRide() {
+        return busRide;
+    }
+
+    public void setbusRide(String busRide) {
+        this.busRide = busRide;
     }
 }

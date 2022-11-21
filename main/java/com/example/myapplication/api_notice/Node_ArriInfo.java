@@ -11,15 +11,16 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myapplication.ListAdapter;
 import com.example.myapplication.R;
-import com.example.myapplication.driver.Driver_EbusSet;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_ver.get_api;
 
-import java.util.Date;
+import java.util.ArrayList;
 
 public class Node_ArriInfo extends AppCompatActivity {
     boolean search = false;
+    ArrayList<String> vehiclenoList = new ArrayList<>();
+    int a = 0;
+    int b = 999;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +35,48 @@ public class Node_ArriInfo extends AppCompatActivity {
         listAdapter_api.list_clear();
         list.setAdapter(listAdapter_api);
 
-        String[] api_split = get_api.getBusStationRoute(citycode, nodeId).split("\n");
+        int ve_pos = 0;
+        String[] api_split = get_api.getBusStationRoute(citycode, nodeId, "1").split("\n");
         for (int i=0; i<api_split.length; i++) {
             String[] api_split2 = api_split[i].split(" ");
-            if (api_split2[4].equals("저상버스")) {
-                listAdapter_api.addList(api_split2[0], api_split2[1], api_split2[2], api_split2[3], api_split2[4]);
-                search = true;
+            if (api_split2.length != 1) {
+                if (api_split2[5].equals("저상버스")) {
+                    listAdapter_api.addList(api_split2[0], api_split2[1], api_split2[2], api_split2[3], api_split2[4]);
+
+                    String[] routeData = get_api.getBusRoute(citycode, api_split2[3], "1").split("\n");
+                    for (int k=0; k<routeData.length; k++) {
+                        String[] routeData_list = routeData[k].split(" ");
+                        if (routeData_list[2].equals(nodeId)) {
+                            String snodeord = routeData_list[5];
+                            String[] busServiceData = get_api.getBusServiceData(citycode, api_split2[3], "1").split("\n");
+                            for (int j = 0; j < busServiceData.length; j++) {
+                                // nodeid, nodeord, 차량번호
+                                String[] busSD_List = busServiceData[j].split(" ");
+                                if (Integer.parseInt(snodeord) < (Integer.parseInt(busSD_List[1]) + Integer.parseInt(api_split2[0])))
+                                    a = -(Integer.parseInt(snodeord) - (Integer.parseInt(busSD_List[1]) + Integer.parseInt(api_split2[0])));
+                                else
+                                    a = Integer.parseInt(snodeord) - (Integer.parseInt(busSD_List[1]) + Integer.parseInt(api_split2[0]));
+                                if (a < b) {
+                                    if (vehiclenoList.size() == ve_pos) {
+                                        vehiclenoList.add(busSD_List[2]);
+                                    }
+                                    else {
+                                        vehiclenoList.set(ve_pos, busSD_List[2]);
+                                    }
+                                    b = a;
+                                }
+                            }
+                            ve_pos++;
+                            b = 999;
+                            search = true;
+                            break;
+                        }
+                    }
+                }
             }
+        }
+        for (int i=0; i<vehiclenoList.size(); i++) {
+            System.out.println("veNo["+i+"] = " + vehiclenoList.get(i));
         }
 
         if (!search) {
@@ -51,6 +87,7 @@ public class Node_ArriInfo extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     Node_List node_list = listAdapter_api.getItem(i);
+                    String veNo = vehiclenoList.get(i);
 
                     if (node_list.getarrp().equals("1")) {
                         Toast.makeText(Node_ArriInfo.this, "전 정류장을 지난 버스는 알림 신청이 불가능합니다.", Toast.LENGTH_SHORT).show();
@@ -74,9 +111,12 @@ public class Node_ArriInfo extends AppCompatActivity {
                                 intent.putExtra("nodeid", nodeId);
                                 intent.putExtra("routeid", node_list.getRouteId());
                                 intent.putExtra("routeno", node_list.getrouteNo());
+                                System.out.println("veno = "+veNo);
+                                intent.putExtra("veNo", veNo);
                                 startActivity(intent);
                             }
                         });
+                        dlg.show();
                     }
                 }
             });

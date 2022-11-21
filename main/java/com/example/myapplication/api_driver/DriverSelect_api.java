@@ -1,4 +1,4 @@
-package com.example.myapplication.driver;
+package com.example.myapplication.api_driver;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,7 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.R;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_ver.get_api;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;

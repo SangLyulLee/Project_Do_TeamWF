@@ -1,32 +1,21 @@
 package com.example.myapplication.api_ver;
 
-import static com.example.myapplication.vision.get_api.getStaionBusData;
-
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.Vibrator;
-import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.api_notice.NoticeRe_api;
-import com.example.myapplication.notice.Notice;
-import com.example.myapplication.notice.NoticeApi;
-import com.example.myapplication.vision.blind_main;
-import com.example.myapplication.vision.blind_wait;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_notice.NoticeApi;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,31 +24,49 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class Menu3_api extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private DatabaseReference databaseReference;
     NoticeApi noticeData;
-    int notice_pos = 0;
-    boolean busRide = false, first_bool = true;
-    String sNodeord = null, eNodeord, getOnVehicleNo, nowNodeOrd;
-    String[] busData_list;
-    String[] busData_fast;
-    String busData_arrt, fast_arrp;
+    String noticeKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.menu3);
+        setContentView(R.layout.menu3_api);
 
-        TextView sTextView = (TextView) findViewById(R.id.textView3);
-        TextView eTextView = (TextView) findViewById(R.id.textView4);
+        TextView textView = (TextView) findViewById(R.id.textView5);
         Button noticeR_btn = (Button) findViewById(R.id.menu3button1);
         Button noticeC_btn = (Button) findViewById(R.id.menu3button2);
+
+        String busData = getIntent().getStringExtra("busDataList");
+        String sNodeNm = getIntent().getStringExtra("sNodeNm");
+        String eNodeNm = getIntent().getStringExtra("eNodeNm");
+        String[] busDataList = busData.split(" ");
+
+        databaseReference = database.getReference().child("Notice_api");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
+                        noticeData = snapshot.getValue(NoticeApi.class);
+                        noticeKey = snapshot.getKey();
+                        if (noticeData.getbusRide().equals("0")) {
+                            textView.setText("탑승 대기 중...\n\n탑승 정류장 : " + busDataList[2] + "\n버스 번호 : " + busDataList[3] + "\n남은 시간 : " + busDataList[1] + "\n남은 정류장 수 : " + busDataList[0] + "\n\n하차 정류장 : " + eNodeNm);
+                        }
+                        else if (noticeData.getbusRide().equals("1")) {
+                            textView.setText("하차 대기 중...\n\n탑승 정류장 : " + sNodeNm + "\n\n하차 정류장 : " + busDataList[2] + "\n버스 번호 : " + busDataList[3] + "\n남은 시간 : " + busDataList[1] + "\n남은 정류장 수 : " + busDataList[0]);
+                        }
+                        break;
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
 
         /* 알림 변경 버튼 */
         noticeR_btn.setOnClickListener(new View.OnClickListener() {
@@ -85,21 +92,29 @@ public class Menu3_api extends AppCompatActivity {
             }
         });
 
-        TextView textView = (TextView) findViewById(R.id.textView5);
-        databaseReference = database.getReference().child("Notice_api");
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        /* 알림 취소 버튼 */
+        noticeC_btn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
-                        noticeData = snapshot.getValue(NoticeApi.class);
-                        break;
+            public void onClick(View view) {
+                AlertDialog.Builder dlg_noticeC = new AlertDialog.Builder(Menu3_api.this);
+                dlg_noticeC.setTitle("알림 취소 확인");
+
+                dlg_noticeC.setMessage("정말 알림을 취소하시겠습니까?");
+                dlg_noticeC.setPositiveButton("아니오", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) { }
+                });
+                dlg_noticeC.setNegativeButton("예", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        databaseReference.child(noticeKey).removeValue();
+                        Toast.makeText(Menu3_api.this, "알림이 취소되었습니다.", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Menu3_api.this, MainActivity.class);
+                        startActivity(intent);
                     }
-                }
+                });
+                dlg_noticeC.show();
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
         });
-        textView.setText("버스 번호 : " + noticeData.getBusNum() + "\n탑승 정류장 명 : ");
     }
 }

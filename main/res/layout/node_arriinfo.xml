@@ -45,7 +45,7 @@
             android:text="남은 정류장 수"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:translationX="40dp" />
+            android:translationX="10dp" />
 
         <TextView
             android:id="@+id/textView3"
@@ -55,7 +55,7 @@
             android:text="남은 시간"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:translationX="60dp" />
+            android:translationX="10dp" />
 
     </LinearLayout>
 
