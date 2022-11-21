@@ -92,13 +92,13 @@
             android:name=".driver.DriverMain"
             android:exported="true"/>
         <activity
-            android:name=".driver.DriverMain_Api"
+            android:name=".api_driver.DriverMain_Api"
             android:exported="true"/>
         <activity
             android:name=".driver.DriverSelect"
             android:exported="true"/>
         <activity
-            android:name=".driver.DriverSelect_api"
+            android:name=".api_driver.DriverSelect_api"
             android:exported="true"/>
         <activity
             android:name=".notice.EbusSet"
@@ -175,7 +175,7 @@
         </receiver>
 
         <receiver
-            android:name=".driver.Driver_Alarm_api"
+            android:name=".api_driver.Driver_Alarm_api"
             android:directBootAware="true"
             android:enabled="true"
             android:exported="false">
@@ -192,7 +192,7 @@
             android:exported="false"/>
 
         <service
-            android:name=".driver.Driver_Service_api"
+            android:name=".api_driver.Driver_Service_api"
             android:enabled="true"
             android:exported="false"/>
 
