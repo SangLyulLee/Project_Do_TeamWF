@@ -1,5 +1,6 @@
 package com.example.myapplication.api_ver;
 
+import static com.example.myapplication.api_ver.get_api.getStaionBusData;
 import static java.lang.Math.abs;
 
 import android.Manifest;
@@ -11,6 +12,10 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PowerManager;
+import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -22,11 +27,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.myapplication.Menu1;
-import com.example.myapplication.Menu2;
+import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.kakaomap.kakaomapmain;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_notice.NoticeApi;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,6 +39,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity_api extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
@@ -42,6 +49,9 @@ public class MainActivity_api extends AppCompatActivity {
     private DatabaseReference mDatabaseRef = database.getReference("member").child("UserAccount").child(firebaseUser.getUid()).child("name");
     double longitude = 0, latitude = 0;
     int notice_pos = 0;
+    NoticeApi noticeData;
+    String sNodeord, eNodeord, nowNodeord, sNodeNm, eNodeNm;
+    boolean termination = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +63,6 @@ public class MainActivity_api extends AppCompatActivity {
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        String speech_str = getIntent().getStringExtra("speech").toString();
 
         if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -92,7 +101,7 @@ public class MainActivity_api extends AppCompatActivity {
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity_api.this, Menu1.class);
+                Intent intent = new Intent(MainActivity_api.this, Menu1_api.class);
                 startActivity(intent);
             }
         });
@@ -130,15 +139,156 @@ public class MainActivity_api extends AppCompatActivity {
                 int j = 1;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                        noticeData = snapshot.getValue(NoticeApi.class);
+                        notice_pos = j;
                         button3.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
-                                startActivity(intent);
+                                Toast.makeText(MainActivity_api.this, "잠시 후에 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
                             }
                         });
-                        notice_pos = j;
 
+                        String[] RouteData = get_api.getBusRoute(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
+                        for (int i=0; i<RouteData.length; i++) {
+                            String[] RouteData_List = RouteData[i].split(" ");
+                            if (RouteData_List[2].equals(noticeData.getSbusStopNodeId())) {
+                                sNodeord = RouteData_List[5];
+                                sNodeNm = RouteData_List[3];
+                            }
+                            if (RouteData_List[2].equals(noticeData.getEbusStopNodeId())) {
+                                eNodeord = RouteData_List[5];
+                                eNodeNm = RouteData_List[3];
+                                break;
+                            }
+                        }
+
+                        Timer timer = new Timer();
+                        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                "MyApp::MyWakelockTag");
+                        TimerTask timerTask = new TimerTask() {
+                            @Override
+                            public void run() {
+                                mDatabaseRef = database.getReference("Notice_api");
+                                mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        int j = 1;
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                                                noticeData = snapshot.getValue(NoticeApi.class);
+                                                notice_pos = j;
+
+                                                String[] busData;
+                                                String[] RouteposData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
+                                                for (int i = 0; i < RouteposData.length; i++) {
+                                                    String[] Routepos_List = RouteposData[i].split(" ");
+                                                    if (Routepos_List.length < 2) {
+                                                        System.out.println("API 서버 오류");
+                                                    }
+                                                    else {
+                                                        if (Routepos_List[2].equals(noticeData.getVehicleno())) {
+                                                            nowNodeord = Routepos_List[1];
+                                                            termination = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                if (termination) {
+                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
+                                                    Intent intent = new Intent(MainActivity_api.this, MainActivity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                }
+
+                                                if (noticeData.getbusRide().equals("0")) {
+                                                    busData = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getSbusStopNodeId()).split("\n");
+                                                    for (int i = 0; i < busData.length; i++) {
+                                                        String[] busData_List = busData[i].split(" ");
+                                                        // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
+                                                        if (busData_List[0].equals("")) {
+                                                            System.out.println("API서버 오류");
+                                                        } else {
+                                                            if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(sNodeord)) {
+                                                                int finalI = i;
+                                                                button3.setOnClickListener(new View.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(View v) {
+                                                                        Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
+                                                                        intent.putExtra("busDataList", busData[finalI]);
+                                                                        intent.putExtra("sNodeNm", sNodeNm);
+                                                                        intent.putExtra("eNodeNm", eNodeNm);
+                                                                        startActivity(intent);
+                                                                    }
+                                                                });
+                                                                if (busData_List[0].equals("1")) {
+                                                                    Handler handler = new Handler(Looper.getMainLooper());
+                                                                    handler.postDelayed(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            Toast.makeText(MainActivity_api.this, "잠시 후 버스가 도착할 예정입니다. 탑승을 준비해주세요.", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    }, 0);
+                                                                    Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                                    vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
+                                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("busRide").setValue("1");
+                                                                }
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (noticeData.getbusRide().equals("1")) {
+                                                    busData = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getEbusStopNodeId()).split("\n");
+                                                    for (int i = 0; i < busData.length; i++) {
+                                                        String[] busData_List = busData[i].split(" ");
+                                                        // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
+                                                        if (busData_List[0].equals("")) {
+                                                            System.out.println("API서버 오류");
+                                                        } else {
+                                                            if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(eNodeord)) {
+                                                                int finalI = i;
+                                                                button3.setOnClickListener(new View.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(View v) {
+                                                                        Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
+                                                                        intent.putExtra("busDataList", busData[finalI]);
+                                                                        intent.putExtra("sNodeNm", sNodeNm);
+                                                                        intent.putExtra("eNodeNm", eNodeNm);
+                                                                        startActivity(intent);
+                                                                    }
+                                                                });
+                                                                if (busData_List[0].equals("1")) {
+                                                                    Handler handler = new Handler(Looper.getMainLooper());
+                                                                    handler.postDelayed(new Runnable() {
+                                                                        @Override
+                                                                        public void run() {
+                                                                            Toast.makeText(MainActivity_api.this, "잠시 후 목적지에 도착할 예정입니다. 하차를 준비해주세요.", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    }, 0);
+                                                                    Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                                    vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
+
+                                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
+                                                                    Intent intent = new Intent(MainActivity_api.this, MainActivity_api.class);
+                                                                    startActivity(intent);
+                                                                    finish();
+                                                                }
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        j++;
+                                    }
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) { }
+                                });
+                            }
+                        };
+                        timer.schedule(timerTask, 0, 10*1000);
                         break;
                     }
                     j++;

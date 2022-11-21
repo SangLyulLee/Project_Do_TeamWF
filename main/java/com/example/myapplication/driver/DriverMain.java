@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -17,10 +16,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.R;
+import com.example.myapplication.api_driver.Driver_Api;
 import com.example.myapplication.map.BusTime;
 import com.example.myapplication.notice.Notice;
-import com.example.myapplication.notice.NoticeApi;
-import com.example.myapplication.vision.get_api;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -388,23 +386,6 @@ public class DriverMain extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) { }
         });
 
-        // 기사 - API 버전
-        mDatabaseRef = database.getReference("Driver_api");
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if ((firebaseUser.getUid()).equals(snapshot.child("Uid").getValue(String.class))) {
-                        driver_api.setRouteId(snapshot.child("routeid").getValue(String.class));
-                        driver_api.setUid(snapshot.child("Uid").getValue(String.class));
-                        driver_api.setVehicleNo(snapshot.child("vehicleno").getValue(String.class));
-                        driver_api.setCityCode(snapshot.child("citycode").getValue(String.class));
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
 /*
         mDatabaseRef = database.getReference("Notice");
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {

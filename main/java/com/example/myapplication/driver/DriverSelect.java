@@ -2,15 +2,8 @@ package com.example.myapplication.driver;
 
 import static java.lang.Math.abs;
 
-import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -24,13 +17,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
+import com.example.myapplication.api_driver.DriverAdapter_api;
+import com.example.myapplication.api_driver.DriverMain_Api;
+import com.example.myapplication.api_driver.DriverSelect_api;
 import com.example.myapplication.map.BusTime;
-import com.example.myapplication.vision.blind_route;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_ver.get_api;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -43,7 +36,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
 
 public class DriverSelect extends AppCompatActivity {
     private ArrayList<BusTime> busTimeArray = new ArrayList<>();

@@ -1,12 +1,18 @@
 package com.example.myapplication.map;
 
+import static java.lang.Math.abs;
+
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -19,7 +25,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
-import com.example.myapplication.vision.get_api;
+import com.example.myapplication.api_ver.get_api;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,7 +48,7 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION};
-
+    double longitude = 0, latitude = 0;
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference databaseReference = database.getReference("BusRoute").child("1").child("route");
 
@@ -51,17 +57,38 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(RouteMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+        } else {
+            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            String provider = location.getProvider();
+            if (location == null) {
+                latitude = 34.800774;
+                longitude = 126.370871;
+            } else {
+                longitude = abs(location.getLongitude());
+                latitude = location.getLatitude();
+                double altitude = location.getAltitude();
+            }
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, gpsLocationListener);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, gpsLocationListener);
+        }
+
         MapPOIItem marker = new MapPOIItem();
         mapView = new MapView(this);
         mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
         mapViewContainer.addView(mapView);
         mapView.setMapViewEventListener(this);
-        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(34.7936, 126.3653), true);
+        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude, longitude), true);
 
         final int busNum = getIntent().getIntExtra("busNum", 0);
         String apibool = getIntent().getStringExtra("api_bool");
 
         if (apibool.equals("0")) {
+            System.out.println("custom_MapView");
             ArrayList<String> busRoute = new ArrayList<>();
             databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -111,6 +138,7 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
             });
         }
         else if (apibool.equals("1")) {
+            System.out.println("api_MapView");
             String citycode = getIntent().getStringExtra("citycode");
             String routeid = getIntent().getStringExtra("routeid");
 
@@ -134,6 +162,26 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
             MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
             int padding = 100;
             mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
+        }
+        else if (apibool.equals("2")) {
+            System.out.println("api_MapView2");
+            String citycode = getIntent().getStringExtra("citycode");
+
+            String[] api_split = get_api.getStationInfo(citycode, "", "1").split("\n");
+            for (int i=0; i<api_split.length; i++) {
+                String[] api_split2 = api_split[i].split(" ");
+                MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
+                marker.setItemName(api_split2[3] + "(" + api_split2[4] + ")");
+                marker.setTag(0);
+                marker.setMapPoint(mapPoint);
+                marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+                marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+                mapView.addPOIItem(marker);
+            }
+            int padding = 100;
+        }
+        else {
+            System.out.println("시스템 오류");
         }
     }
 
@@ -294,4 +342,23 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
 
     @Override
     public void onMapViewMoveFinished(MapView mapView, MapPoint mapPoint) { }
+
+    final LocationListener gpsLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            String provider = location.getProvider();
+            double longitude = location.getLongitude();
+            double latitude = location.getLatitude();
+            double altitude = location.getAltitude();
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        public void onProviderEnabled(String provider) {
+        }
+
+        public void onProviderDisabled(String provider) {
+        }
+    };
 }
