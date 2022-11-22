@@ -37,7 +37,7 @@
         android:layout_height="48dp"
         android:ems="10"
         android:gravity="start|top"
-        android:hint="노선을 검색합니다."
+        android:hint="정류장ID 혹은 정류장명을 입력해주세요."
         android:inputType="textMultiLine"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

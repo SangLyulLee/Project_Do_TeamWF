@@ -28,13 +28,13 @@
             android:text="TextView"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:translationX="50dp" />
+            android:translationX="15dp" />
 
         <ImageView
             android:id="@+id/imageView4"
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:translationX="80dp" />
+            android:translationX="15dp" />
 
     </LinearLayout>
 
