@@ -29,10 +29,6 @@ import com.google.firebase.database.ValueEventListener;
 
 public class Service_Cancle extends Service {
     private static final String TAG = Service_Cancle.class.getSimpleName();
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private DatabaseReference mDatabaseRef;
-    private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
-    FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
 
     @Nullable
     @Override
@@ -81,52 +77,7 @@ public class Service_Cancle extends Service {
             startForeground(1, clsBuilder.build());
         }
 
-        /*
-        String busNum = Integer.toString(intent.getIntExtra("busNum", 0));
-        String eBus = Integer.toString(intent.getIntExtra("eBus", 0));
-        String sBus = Integer.toString(intent.getIntExtra("sBus", 0));
-        String busTime = Integer.toString(intent.getIntExtra("busTime", 0));
-
-        Toast.makeText(this, "test : "+eBus, Toast.LENGTH_SHORT).show();
-        mDatabaseRef = database.getReference("BusRoute").child("1").child("route").child(busNum);
-        mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot1) {
-                String busNum = Integer.toString(intent.getIntExtra("busNum", 0));
-                int eBus = intent.getIntExtra("eBus", 0);
-                String sBus = Integer.toString(intent.getIntExtra("sBus", 0));
-                String busTime = Integer.toString(intent.getIntExtra("busTime", 0));
-
-                int i = 0;
-                for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
-                    if (Integer.toString(eBus).equals(snapshot1.getValue(String.class))) {
-                        break;
-                    }
-                    i++;
-                }
-
-                final int pos = i;
-
-                i = 0;
-                for (DataSnapshot snapshot1 : dataSnapshot1.getChildren()) {
-                    if (sBus.equals(snapshot1.getValue(String.class))) {
-                        break;
-                    }
-                    i++;
-                }
-                final int pos_s = i;
-                for (int seat_pos = pos_s + 1; seat_pos <= pos + 1; seat_pos++) {
-                    database.getReference("BusSeat")
-                            .child(busNum)
-                            .child(busTime)
-                            .child("route" + Integer.toString(seat_pos)).setValue(0);
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-        */
-        Toast.makeText(this, "앱 미사용자 탑승으로 알림이 취소되었습니다.\n다시 선택해주세요.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "알림 취소 혹은 앱 미사용자 탑승으로 알림이 취소되었습니다.", Toast.LENGTH_SHORT).show();
 
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);

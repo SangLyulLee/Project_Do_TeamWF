@@ -9,6 +9,8 @@
         android:layout_width="137dp"
         android:layout_height="23dp"
         android:layout_marginLeft="16dp"
+        android:gravity="center"
+        android:text="Loading..."
         android:background="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.883"

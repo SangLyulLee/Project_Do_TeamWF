@@ -1,5 +1,7 @@
 package com.example.myapplication.api_ver;
 
+import static com.example.myapplication.api_ver.get_api.getStaionBusData;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +26,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class Menu3_api extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
@@ -31,6 +36,9 @@ public class Menu3_api extends AppCompatActivity {
     private DatabaseReference databaseReference;
     NoticeApi noticeData;
     String noticeKey;
+    String nowNodeord;
+    Timer timer = new Timer();
+    TimerTask timerTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,32 +49,75 @@ public class Menu3_api extends AppCompatActivity {
         Button noticeR_btn = (Button) findViewById(R.id.menu3button1);
         Button noticeC_btn = (Button) findViewById(R.id.menu3button2);
 
-        String busData = getIntent().getStringExtra("busDataList");
         String sNodeNm = getIntent().getStringExtra("sNodeNm");
         String eNodeNm = getIntent().getStringExtra("eNodeNm");
-        String[] busDataList = busData.split(" ");
+        String sNodeord = getIntent().getStringExtra("sNodeord");
+        String eNodeord = getIntent().getStringExtra("eNodeord");
 
-        databaseReference = database.getReference().child("Notice_api");
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        timerTask = new TimerTask() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
-                        noticeData = snapshot.getValue(NoticeApi.class);
-                        noticeKey = snapshot.getKey();
-                        if (noticeData.getbusRide().equals("0")) {
-                            textView.setText("탑승 대기 중...\n\n탑승 정류장 : " + busDataList[2] + "\n버스 번호 : " + busDataList[3] + "\n남은 시간 : " + busDataList[1] + "\n남은 정류장 수 : " + busDataList[0] + "\n\n하차 정류장 : " + eNodeNm);
+            public void run() {
+                databaseReference = database.getReference().child("Notice_api");
+                databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
+                                noticeData = snapshot.getValue(NoticeApi.class);
+                                noticeKey = snapshot.getKey();
+
+                                String[] RouteposData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
+                                for (int i = 0; i < RouteposData.length; i++) {
+                                    String[] Routepos_List = RouteposData[i].split(" ");
+                                    if (Routepos_List.length < 2) {
+                                        System.out.println("API 서버 오류");
+                                    } else {
+                                        if (Routepos_List[2].equals(noticeData.getVehicleno())) {
+                                            nowNodeord = Routepos_List[1];
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (noticeData.getbusRide().equals("0")) {
+                                    String[] busDataList = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getSbusStopNodeId()).split("\n");
+                                    for (int i = 0; i < busDataList.length; i++) {
+                                        String[] busData_List = busDataList[i].split(" ");
+                                        // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
+                                        if (busData_List[0].equals("")) {
+                                            System.out.println("API서버 오류");
+                                        } else {
+                                            if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(sNodeord)) {
+                                                textView.setText("탑승 대기 중...\n\n탑승 정류장 : " + busData_List[2] + "\n버스 번호 : " + busData_List[3] + "\n남은 시간 : " + busData_List[1] + " 분\n남은 정류장 수 : " + busData_List[0] + "\n\n하차 정류장 : " + eNodeNm);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else if (noticeData.getbusRide().equals("1")) {
+                                    String[] busDataList = getStaionBusData(noticeData.getCityCode(), noticeData.getRouteId(), noticeData.getEbusStopNodeId()).split("\n");
+                                    for (int i = 0; i < busDataList.length; i++) {
+                                        String[] busData_List = busDataList[i].split(" ");
+                                        // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
+                                        if (busData_List[0].equals("")) {
+                                            System.out.println("API서버 오류");
+                                        } else {
+                                            if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(eNodeord)) {
+                                                textView.setText("하차 대기 중...\n\n탑승 정류장 : " + sNodeNm + "\n\n하차 정류장 : " + busData_List[2] + "\n버스 번호 : " + busData_List[3] + "\n남은 시간 : " + busData_List[1] + " 분\n남은 정류장 수 : " + busData_List[0]);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                            }
                         }
-                        else if (noticeData.getbusRide().equals("1")) {
-                            textView.setText("하차 대기 중...\n\n탑승 정류장 : " + sNodeNm + "\n\n하차 정류장 : " + busDataList[2] + "\n버스 번호 : " + busDataList[3] + "\n남은 시간 : " + busDataList[1] + "\n남은 정류장 수 : " + busDataList[0]);
-                        }
-                        break;
                     }
-                }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) { }
+                });
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
+        };
+        timer.schedule(timerTask, 0, 10*1000);
 
         /* 알림 변경 버튼 */
         noticeR_btn.setOnClickListener(new View.OnClickListener() {
@@ -116,5 +167,11 @@ public class Menu3_api extends AppCompatActivity {
                 dlg_noticeC.show();
             }
         });
+    }
+    protected void OnPause() {
+        timer.cancel();
+    }
+    protected void OnResume() {
+        timer.schedule(timerTask, 0, 10*1000);
     }
 }

@@ -4,6 +4,8 @@ import static com.example.myapplication.api_ver.get_api.getStaionBusData;
 import static java.lang.Math.abs;
 
 import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,16 +25,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.MainActivity;
 import com.example.myapplication.R;
+import com.example.myapplication.api_driver.DriverMain_Api;
+import com.example.myapplication.api_driver.Driver_Alarm_api;
+import com.example.myapplication.api_notice.Alarm_Reciver_api;
 import com.example.myapplication.kakaomap.kakaomapmain;
 import com.example.myapplication.api_notice.NoticeApi;
+import com.example.myapplication.notice.Alarm_Cancle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,15 +56,20 @@ public class MainActivity_api extends AppCompatActivity {
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private DatabaseReference mDatabaseRef = database.getReference("member").child("UserAccount").child(firebaseUser.getUid()).child("name");
     double longitude = 0, latitude = 0;
-    int notice_pos = 0;
     NoticeApi noticeData;
     String sNodeord, eNodeord, nowNodeord, sNodeNm, eNodeNm;
     boolean termination = true;
+    private PendingIntent pendingIntent;
+    private AlarmManager alarmManager;
+    Timer timer = new Timer();
+    String getKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_api);
+
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
@@ -69,14 +82,12 @@ public class MainActivity_api extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity_api.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            String provider = location.getProvider();
             if (location == null) {
                 latitude = 34.800774;
                 longitude = 126.370871;
             } else {
                 longitude = abs(location.getLongitude());
                 latitude = location.getLatitude();
-                double altitude = location.getAltitude();
             }
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, gpsLocationListener);
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, gpsLocationListener);
@@ -136,11 +147,9 @@ public class MainActivity_api extends AppCompatActivity {
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                int j = 1;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
                         noticeData = snapshot.getValue(NoticeApi.class);
-                        notice_pos = j;
                         button3.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -162,7 +171,6 @@ public class MainActivity_api extends AppCompatActivity {
                             }
                         }
 
-                        Timer timer = new Timer();
                         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                                 "MyApp::MyWakelockTag");
@@ -177,7 +185,19 @@ public class MainActivity_api extends AppCompatActivity {
                                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                             if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
                                                 noticeData = snapshot.getValue(NoticeApi.class);
-                                                notice_pos = j;
+                                                getKey = snapshot.getKey();
+
+                                                button3.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
+                                                        intent.putExtra("sNodeNm", sNodeNm);
+                                                        intent.putExtra("eNodeNm", eNodeNm);
+                                                        intent.putExtra("sNodeord", sNodeord);
+                                                        intent.putExtra("eNodeord", eNodeord);
+                                                        startActivity(intent);
+                                                    }
+                                                });
 
                                                 String[] busData;
                                                 String[] RouteposData = get_api.getBusServiceData(noticeData.getCityCode(), noticeData.getRouteId(), "1").split("\n");
@@ -195,10 +215,14 @@ public class MainActivity_api extends AppCompatActivity {
                                                     }
                                                 }
                                                 if (termination) {
-                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
-                                                    Intent intent = new Intent(MainActivity_api.this, MainActivity.class);
-                                                    startActivity(intent);
-                                                    finish();
+                                                    database.getReference("Notice_api").child(getKey).removeValue();
+                                                    timer.cancel();
+                                                    break;
+                                                }
+                                                if (Integer.parseInt(eNodeord) < Integer.parseInt(nowNodeord)) {
+                                                    database.getReference("Notice_api").child(getKey).removeValue();
+                                                    timer.cancel();
+                                                    break;
                                                 }
 
                                                 if (noticeData.getbusRide().equals("0")) {
@@ -210,28 +234,28 @@ public class MainActivity_api extends AppCompatActivity {
                                                             System.out.println("API서버 오류");
                                                         } else {
                                                             if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(sNodeord)) {
-                                                                int finalI = i;
-                                                                button3.setOnClickListener(new View.OnClickListener() {
-                                                                    @Override
-                                                                    public void onClick(View v) {
-                                                                        Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
-                                                                        intent.putExtra("busDataList", busData[finalI]);
-                                                                        intent.putExtra("sNodeNm", sNodeNm);
-                                                                        intent.putExtra("eNodeNm", eNodeNm);
-                                                                        startActivity(intent);
-                                                                    }
-                                                                });
                                                                 if (busData_List[0].equals("1")) {
                                                                     Handler handler = new Handler(Looper.getMainLooper());
                                                                     handler.postDelayed(new Runnable() {
                                                                         @Override
                                                                         public void run() {
                                                                             Toast.makeText(MainActivity_api.this, "잠시 후 버스가 도착할 예정입니다. 탑승을 준비해주세요.", Toast.LENGTH_SHORT).show();
+                                                                            Intent my_intent = new Intent(MainActivity_api.this, Alarm_Reciver_api.class);
+                                                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                                                pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                                                            } else {
+                                                                                pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                                            }
+                                                                            if (Build.VERSION.SDK_INT >= 23) {
+                                                                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                                            } else {
+                                                                                alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                                            }
                                                                         }
                                                                     }, 0);
                                                                     Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                                                                     vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
-                                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).child("busRide").setValue("1");
+                                                                    database.getReference("Notice_api").child(getKey).child("busRide").setValue("1");
                                                                 }
                                                                 break;
                                                             }
@@ -246,32 +270,40 @@ public class MainActivity_api extends AppCompatActivity {
                                                             System.out.println("API서버 오류");
                                                         } else {
                                                             if (Integer.parseInt(busData_List[0]) + Integer.parseInt(nowNodeord) == Integer.parseInt(eNodeord)) {
-                                                                int finalI = i;
-                                                                button3.setOnClickListener(new View.OnClickListener() {
-                                                                    @Override
-                                                                    public void onClick(View v) {
-                                                                        Intent intent = new Intent(MainActivity_api.this, Menu3_api.class);
-                                                                        intent.putExtra("busDataList", busData[finalI]);
-                                                                        intent.putExtra("sNodeNm", sNodeNm);
-                                                                        intent.putExtra("eNodeNm", eNodeNm);
-                                                                        startActivity(intent);
-                                                                    }
-                                                                });
                                                                 if (busData_List[0].equals("1")) {
                                                                     Handler handler = new Handler(Looper.getMainLooper());
                                                                     handler.postDelayed(new Runnable() {
                                                                         @Override
                                                                         public void run() {
                                                                             Toast.makeText(MainActivity_api.this, "잠시 후 목적지에 도착할 예정입니다. 하차를 준비해주세요.", Toast.LENGTH_SHORT).show();
+                                                                            Intent my_intent = new Intent(MainActivity_api.this, Alarm_Reciver_api.class);
+                                                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                                                pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                                                                            } else {
+                                                                                pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                                                            }
+                                                                            if (Build.VERSION.SDK_INT >= 23) {
+                                                                                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                                            } else {
+                                                                                alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                                                                            }
                                                                         }
                                                                     }, 0);
                                                                     Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                                                                     vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500, 500, 500, 500, 500}, -1);
 
-                                                                    database.getReference("Notice_api").child(Integer.toString(notice_pos)).removeValue();
+                                                                    database.getReference("Notice_api").child(getKey).removeValue();
+                                                                    button3.setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            Toast.makeText(MainActivity_api.this, "회원님의 알림 내역이 없습니다.", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    });
+
                                                                     Intent intent = new Intent(MainActivity_api.this, MainActivity_api.class);
                                                                     startActivity(intent);
                                                                     finish();
+                                                                    timer.cancel();
                                                                 }
                                                                 break;
                                                             }
@@ -280,8 +312,8 @@ public class MainActivity_api extends AppCompatActivity {
                                                 }
                                                 break;
                                             }
+                                            j++;
                                         }
-                                        j++;
                                     }
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError error) { }
@@ -291,15 +323,64 @@ public class MainActivity_api extends AppCompatActivity {
                         timer.schedule(timerTask, 0, 10*1000);
                         break;
                     }
-                    j++;
                 }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
 
+        mDatabaseRef = database.getReference("Notice_api");
+        mDatabaseRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            }
 
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                Intent my_intent = new Intent(MainActivity_api.this, Alarm_Cancle.class);
+                boolean noticeDelete = true;
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                        noticeDelete = false;
+                        break;
+                    }
+                }
+                if (noticeDelete) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                    } else {
+                        pendingIntent = (PendingIntent.getBroadcast(MainActivity_api.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                    }
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                    } else {
+                        alarmManager.set(AlarmManager.RTC_WAKEUP, 0, pendingIntent);
+                    }
+                    button3.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Toast.makeText(MainActivity_api.this, "회원님의 알림 내역이 없습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    finish();
+                    timer.cancel();
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
     }
+
     final LocationListener gpsLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(@NonNull Location location) {
