@@ -200,6 +200,10 @@
             android:name=".driver.Driver_EbusSet"
             android:exported="true"/>
 
+        <activity
+            android:name=".api_driver.Driver_EbusSet_api"
+            android:exported="true"/>
+
         <receiver
             android:name=".notice.Alarm_Cancle"
             android:directBootAware="true"
