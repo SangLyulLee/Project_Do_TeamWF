@@ -33,7 +33,7 @@ public class EbusSet_api extends AppCompatActivity {
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     int notice_pos = 1;
     int s_pos = 0;
-    boolean noticeBool = false;
+    boolean noticeBool = true, seatpass = true, already_notice = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +64,21 @@ public class EbusSet_api extends AppCompatActivity {
             }
         }
 
+        databaseReference = database.getReference("Notice_api");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
+                        already_notice = false;
+                        break;
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+
         boolean[] seatBool_Arr = new boolean[api_split.length-s_pos];
         databaseReference = database.getReference().child("Notice_api");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -72,29 +87,37 @@ public class EbusSet_api extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     NoticeApi noticeData = snapshot.getValue(NoticeApi.class);
                     assert noticeData != null;
-                    if (noticeData.getVehicleno().equals(veNo)) {
-                        if (Integer.toString(noticeData.getU_type()).equals("1")) {
-                            boolean seatBool = false;
-                            for (int i=s_pos; i<api_split.length; i++) {
-                                String[] api_split2 = api_split[i].split(" ");
-                                if (seatBool) {
-                                    if (api_split2[2].equals(noticeData.getEbusStopNodeId())) {
-                                        seatBool = false;
-                                        break;
-                                    }
-                                    else {
-                                        listAdapter.setListImg2(i-s_pos, ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
-                                        seatBool_Arr[i-s_pos] = true;
-                                    }
+                    if (noticeData.getVehicleno().equals(veNo) && noticeData.getU_type() == 1) {
+                        boolean seatBool = false;
+                        for (int i = s_pos; i < api_split.length; i++) {
+                            String[] api_split2 = api_split[i].split(" ");
+                            if (seatBool) {
+                                if (api_split2[2].equals(noticeData.getEbusStopNodeId())) {
+                                    seatBool = false;
+                                    break;
+                                } else {
+                                    listAdapter.setListImg2(i - s_pos, ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                                    seatBool_Arr[i - s_pos] = true;
                                 }
-                                else {
-                                    if (api_split2[2].equals(noticeData.getSbusStopNodeId())) {
-                                        seatBool_Arr[i-s_pos] = true;
-                                        listAdapter.setListImg2(i-s_pos, ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
-                                        seatBool = true;
-                                    }
+                            } else {
+                                if (api_split2[2].equals(noticeData.getSbusStopNodeId())) {
+                                    seatBool_Arr[i - s_pos] = true;
+                                    listAdapter.setListImg2(i - s_pos, ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                                    seatBool = true;
+                                    continue;
                                 }
                             }
+                            if (api_split2[2].equals(noticeData.getEbusStopNodeId())) {
+                                for (int j = i - 1; j >= s_pos; j--) {
+                                    listAdapter.setListImg2(j - s_pos, ContextCompat.getDrawable(getApplicationContext(), R.drawable.seat));
+                                    seatBool_Arr[j - s_pos] = true;
+                                }
+                                break;
+                            }
+                        }
+                        String[] test_split = api_split[s_pos-1].split(" ");
+                        if (test_split[2].equals(nodeid)) {
+                            seatpass = false;
                         }
                     }
                 }
@@ -104,7 +127,6 @@ public class EbusSet_api extends AppCompatActivity {
         });
 
         listAdapter.notifyDataSetChanged();
-
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -112,12 +134,21 @@ public class EbusSet_api extends AppCompatActivity {
                 for (int j=0; j<seatBool_Arr.length; j++) {
                     if (seatBool_Arr[i]) {
                         Toast.makeText(EbusSet_api.this, "빈 자리를 선택해주세요.", Toast.LENGTH_SHORT).show();
-                        noticeBool = true;
+                        noticeBool = false;
                         break;
                     }
                 }
+
+                if (!already_notice) {
+                    Toast.makeText(EbusSet_api.this, "이미 신청한 알림이 있습니다. 확인해주세요.", Toast.LENGTH_SHORT).show();
+                    noticeBool = false;
+                }
+                else if (!seatpass) {
+                    Toast.makeText(EbusSet_api.this, "탑승 정류장에 자리가 없습니다. 다른 출발지를 선택해주세요.", Toast.LENGTH_SHORT).show();
+                    noticeBool = false;
+                }
+
                 if (noticeBool) {
-                    System.out.println("i : " + i + ", s_pos : " + s_pos);
                     String[] api_split2 = api_split[position].split(" ");
 
                     AlertDialog.Builder dlg = new AlertDialog.Builder(EbusSet_api.this);
