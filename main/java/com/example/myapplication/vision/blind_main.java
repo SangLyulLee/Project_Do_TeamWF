@@ -46,8 +46,8 @@ public class blind_main extends AppCompatActivity {
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference databaseReference;
-    boolean noticeBool = false;
     SoundPool soundPool;
+    boolean noticeBool = false;
     int soundID;
 
     @Override
@@ -65,6 +65,7 @@ public class blind_main extends AppCompatActivity {
                 }
             }
         });
+
         databaseReference = database.getReference().child("Notice_api");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -72,28 +73,34 @@ public class blind_main extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (firebaseUser.getUid().equals(snapshot.child("Uid").getValue(String.class))) {
                         Intent intent = new Intent(blind_main.this, blind_wait.class);
+                        noticeBool = true;
                         startActivity(intent);
                         finish();
                     }
                 }
-                noticeBool = true;
-                Timer timer = new Timer();
-                TimerTask timerTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
-                    }
-                };
-                timer.schedule(timerTask, 1000);
-                while (true) {
-                    if (!tts.isSpeaking())
-                        break;
-                }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
+
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (!noticeBool) {
+                    tts.speak("화면을 터치하고 목적지를 말해주세요.", TextToSpeech.QUEUE_ADD, null);
+                }
+                else {
+                    tts.speak("알림 확인 창으로 넘어갑니다. 잠시만 기다려주세요.", TextToSpeech.QUEUE_ADD, null);
+                }
+            }
+        };
+        timer.schedule(timerTask, 1000);
+
+        while (true) {
+            if (!tts.isSpeaking())
+                break;
+        }
 
         soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
         soundID = soundPool.load(this, R.raw.sound, 1);
