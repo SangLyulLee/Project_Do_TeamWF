@@ -36,7 +36,6 @@ import java.util.TimerTask;
 
 public class DriverMain extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private DatabaseReference databaseReference;
     private FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
     FirebaseUser firebaseUser = mFirebaseAuth.getCurrentUser();
     private DatabaseReference mDatabaseRef = database.getReference("Driver");
