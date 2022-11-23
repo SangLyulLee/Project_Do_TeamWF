@@ -592,10 +592,11 @@ public class get_api {
         String api_url = "http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getSttnNoList";
         String key = "zHfs9G4Ov6Oa8b8xIEKrSgJlA79ZaKBQdKaGv5kGdHBgA%2Bv%2BEG%2Fq%2F9A7EXT7JrvAmyfkUV7E7mn%2FHSniwdqHTA%3D%3D";
 
-        String url = (api_url + "?serviceKey=" + key + "&cityCode=" + citycode + "&nodeNm=" + nodeN + "&numOfRows=10&pageNo=" + pageNum + "&_type=xml");
-
+        String url;
         if (isInt(nodeN)) {
             url = (api_url + "?serviceKey=" + key + "&cityCode=" + citycode + "&nodeNo=" + nodeN + "&numOfRows=10&pageNo=" + pageNum + "&_type=xml");
+        } else {
+            url = (api_url + "?serviceKey=" + key + "&cityCode=" + citycode + "&nodeNm=" + nodeN + "&numOfRows=10&pageNo=" + pageNum + "&_type=xml");
         }
 
         StringBuilder buffer = new StringBuilder();

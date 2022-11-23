@@ -232,6 +232,10 @@ public class DriverSelect extends AppCompatActivity {
         select_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TextView textView = (TextView) findViewById(R.id.textView9);
+                textView.setText("운행할 버스를 선택해주세요");
+                EditText editText = (EditText) findViewById(R.id.edit_busnum);
+                editText.setHint("버스 번호를 입력하세요");
                 input_str = edit.getText().toString();
                 if (input_str.equals("")) {
                     Toast.makeText(DriverSelect.this, "버스 번호를 입력해주세요.", Toast.LENGTH_SHORT).show();

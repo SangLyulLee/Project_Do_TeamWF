@@ -13,6 +13,8 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -55,7 +57,7 @@ public class blind_wait extends AppCompatActivity {
         super.onCreate(savedIntancdState);
         setContentView(R.layout.blind_wait);
 
-        TextView textView = (TextView) findViewById(R.id.busData_text);
+        Button textView = (Button) findViewById(R.id.busData_text);
         Intent my_intent = new Intent(blind_wait.this, Alarm_Reciver_api.class);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
@@ -138,7 +140,14 @@ public class blind_wait extends AppCompatActivity {
                                             }
                                         }
                                     }
-                                    textView.setText("탑승 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "\n남은 정류장 수 : " + busData_fast[0] + "\n남은 시간 : " + busData_fast[1] + " 분");
+                                    String tts_str = "탑승 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "\n남은 정류장 수 : " + busData_fast[0] + "\n남은 시간 : " + busData_fast[1] + " 분";
+                                    textView.setText(tts_str);
+                                    textView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            tts.speak(tts_str, TextToSpeech.QUEUE_ADD, null);
+                                        }
+                                    });
                                     if (busData_fast[0].equals("1")) {
                                         Handler handler = new Handler(Looper.getMainLooper());
                                         handler.postDelayed(new Runnable() {
@@ -221,6 +230,14 @@ public class blind_wait extends AppCompatActivity {
                                             } else {
                                                 // [0]:남은정류장수, [1]:남은시간, [2]:정류장명, [3]:버스번호
                                                 if (Integer.parseInt(busData_list[0]) + Integer.parseInt(nowNodeOrd) == Integer.parseInt(eNodeord)) {
+                                                    String tts_str = "하차 정류장 : " + busData_list[2] + "\n버스 번호 : " + busData_list[3];
+                                                    textView.setText(tts_str);
+                                                    textView.setOnClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View view) {
+                                                            tts.speak(tts_str, TextToSpeech.QUEUE_ADD, null);
+                                                        }
+                                                    });
                                                     textView.setText("하차 정류장 : " + busData_list[2] + "\n버스 번호 : " + busData_list[3]);
                                                     if (busData_list[0].equals("1")) {
 

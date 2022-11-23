@@ -16,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.ListAdapter;
 import com.example.myapplication.R;
+import com.example.myapplication.api_driver.DriverMain_Api;
 import com.example.myapplication.api_notice.Node_ArriInfo;
 import com.example.myapplication.map.RouteMapActivity;
 
@@ -99,7 +101,12 @@ public class Menu1_api extends AppCompatActivity {
                     stationInfo = get_api.getStationInfo(api_split2[0], input_str, "1").split("\n");
                     for (int i=0; i<stationInfo.length; i++) {
                         stationList = stationInfo[i].split(" ");
-                        listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.non), (i+1)+". "+stationList[3]+" ("+stationList[4]+")", ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        if (stationList.length == 1) {
+                            Toast.makeText(Menu1_api.this, "검색 오류입니다. 다시 입력해주세요.", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.non), (i + 1) + ". " + stationList[3] + " (" + stationList[4] + ")", ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                        }
                     }
                 }
                 listAdapter.notifyDataSetChanged();
