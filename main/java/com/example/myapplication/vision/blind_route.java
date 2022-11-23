@@ -182,10 +182,15 @@ public class blind_route extends AppCompatActivity {
         } else {
             for (int i = 0; i < api_split.length; i++) {
                 String[] api_split2 = api_split[i].split(" ");
-                start_station_list[i][0] = api_split2[0];
-                start_station_list[i][1] = api_split2[1];
-                start_station_list[i][2] = api_split2[2];
-                start_station_list[i][3] = api_split2[3];
+                if (api_split2.length == 1) {
+                    System.out.println("API 서버 오류");
+                }
+                else {
+                    start_station_list[i][0] = api_split2[0];
+                    start_station_list[i][1] = api_split2[1];
+                    start_station_list[i][2] = api_split2[2];
+                    start_station_list[i][3] = api_split2[3];
+                }
             }
         }
 
@@ -215,13 +220,18 @@ public class blind_route extends AppCompatActivity {
             // [0] : 남은 정류장 수 / [1] : 남은 시간(분) / [2] : nodenm / [3] : routeID / [4] : routeno / [5] : 버스타입
             for (int i = 0; i < start_route.length; i++) {
                 String[] sBusSplit = start_route[i].split(" ");
-                sRouteInfo[i][0] = sBusSplit[0];
-                sRouteInfo[i][1] = sBusSplit[1];
-                sRouteInfo[i][2] = sBusSplit[2];
-                sRouteInfo[i][3] = sBusSplit[3];
-                sRouteInfo[i][4] = sBusSplit[4];
-                sRouteInfo[i][5] = sBusSplit[5];
-            //    System.out.println("sRouteInfo[" + i + "] : " + sRouteInfo[i][0] + ", " + sRouteInfo[i][1]);
+                if (sBusSplit.length == 1) {
+                    System.out.println("API 서버 오류");
+                }
+                else {
+                    sRouteInfo[i][0] = sBusSplit[0];
+                    sRouteInfo[i][1] = sBusSplit[1];
+                    sRouteInfo[i][2] = sBusSplit[2];
+                    sRouteInfo[i][3] = sBusSplit[3];
+                    sRouteInfo[i][4] = sBusSplit[4];
+                    sRouteInfo[i][5] = sBusSplit[5];
+                    //    System.out.println("sRouteInfo[" + i + "] : " + sRouteInfo[i][0] + ", " + sRouteInfo[i][1]);
+                }
             }
 
             String[] sBusRoute;
@@ -240,29 +250,34 @@ public class blind_route extends AppCompatActivity {
                 //sBR_node[1] = "";
                 for (routeNum = 0; routeNum < sBusRoute.length; routeNum++) {       ////////////////////////routeNum<sBusRoute.length
                     sBR_node = sBusRoute[routeNum].split(" ");
-                    //System.out.println("sBR_node[0] = "+sBR_node[0]+", sBR_node[1] = "+sBR_node[1]);
-                    // 같은 루트 내에 두 정류장이 존재하는가
-                    //for (routeNum=0; routeNum < sBusRoute.length; routeNum++) {
-                    //    sBR_node = sBusRoute[routeNum].split(" ");
-                    if (sBR_node[4].equals(start_station_list[k][3])) {
-                        System.out.println("출발 정류장 존재, " + routeNum + 1);
-                        sNode_route = true;
-                        sBR_index = routeNum;
+                        //System.out.println("sBR_node[0] = "+sBR_node[0]+", sBR_node[1] = "+sBR_node[1]);
+                        // 같은 루트 내에 두 정류장이 존재하는가
+                        //for (routeNum=0; routeNum < sBusRoute.length; routeNum++) {
+                        //    sBR_node = sBusRoute[routeNum].split(" ");
+                    if (sBR_node.length == 1) {
+                        System.out.println("API 서버 오류");
+                    }
+                    else {
+                        if (sBR_node[4].equals(start_station_list[k][3])) {
+                            System.out.println("출발 정류장 존재, " + routeNum + 1);
+                            sNode_route = true;
+                            sBR_index = routeNum;
 
-                        for (; routeNum < sBusRoute.length; routeNum++) {
-                            sBR_node = sBusRoute[routeNum].split(" ");
-                            for (des_index = 0; des_index < des_station_list.length; des_index++) {
-                            //    System.out.println("sBR_node[1] = " + sBR_node[1]);
-                            //    System.out.println("des_station_list[" + des_index + "][3] = " + des_station_list[des_index][3]);
-                                if (sBR_node[4].equals(des_station_list[des_index][3])) {
-                                    System.out.println("도착 정류장 존재, " + routeNum + 1);
-                                    eNode_route = true;
-                                    eBR_index = routeNum;
+                            for (; routeNum < sBusRoute.length; routeNum++) {
+                                sBR_node = sBusRoute[routeNum].split(" ");
+                                for (des_index = 0; des_index < des_station_list.length; des_index++) {
+                                    //    System.out.println("sBR_node[1] = " + sBR_node[1]);
+                                    //    System.out.println("des_station_list[" + des_index + "][3] = " + des_station_list[des_index][3]);
+                                    if (sBR_node[4].equals(des_station_list[des_index][3])) {
+                                        System.out.println("도착 정류장 존재, " + routeNum + 1);
+                                        eNode_route = true;
+                                        eBR_index = routeNum;
+                                        break;
+                                    }
+                                }
+                                if (eNode_route) {
                                     break;
                                 }
-                            }
-                            if (eNode_route) {
-                                break;
                             }
                         }
                     }
@@ -326,25 +341,59 @@ public class blind_route extends AppCompatActivity {
             String fastRouteInfo_arrT = null, fastRouteInfo_Routeno = null;
             String[] fastRouteInfo;
             fastRouteInfo = get_api.getStaionBus(fastRoute_cityCode, fastRoute_routeId, fastRoute_nodeId, "1").split("\n");
-            for (int i=0; i<fastRouteInfo.length; i++) {
-                String[] fastRouteData = fastRouteInfo[i].split(" ");
+
+            String[] fastRouteData = fastRouteInfo[0].split(" ");
+            if (fastRouteData.length == 1) {
+                System.out.println("API 서버 오류");
+                tts.speak("서버 오류입니다. 다시 신청해주세요.", TextToSpeech.QUEUE_ADD, null);
+                while (true) {
+                    if (!tts.isSpeaking()) {
+                        break;
+                    }
+                }
+                Intent intent = new Intent(blind_route.this, blind_main.class);
+                startActivity(intent);
+                finish();
+            }
+            else if (Integer.parseInt(fastRouteData[0]) == 0) {
+                if (fastRouteInfo.length == 1) {
+                    Timer timer = new Timer();
+                    TimerTask timerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            tts.speak("탐색된 루트가 없습니다. 다시 진행해주세요.", TextToSpeech.QUEUE_ADD, null);
+                            while (true) {
+                                if (!tts.isSpeaking()) {
+                                    break;
+                                }
+                            }
+                            Intent intent = new Intent(blind_route.this, blind_main.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    };
+                    timer.schedule(timerTask, 1000);
+                }
+                else {
+                    fastRouteData = fastRouteInfo[1].split(" ");
+                }
+            }
+            else {
                 fastRouteInfo_arrT = fastRouteData[0];
                 fastRouteInfo_Routeno = fastRouteData[1];
+
+                Intent intent1 = new Intent(blind_route.this, blind_notice.class);
+                intent1.putExtra("startRoute_nodenm", startRoute_nodenm);
+                intent1.putExtra("endRoute_nodenm", endRoute_nodenm);
+                intent1.putExtra("fastRouteInfo[1]", fastRouteInfo_Routeno);
+                intent1.putExtra("fastRouteInfo[0]", fastRouteInfo_arrT);
+                intent1.putExtra("fastRoute_routeId", fastRoute_routeId);
+                intent1.putExtra("startnodeID", fastRoute_nodeId);
+                intent1.putExtra("endnodeID", endRoute_nodeId);
+                intent1.putExtra("fastRoute_cityCode", fastRoute_cityCode);
+                startActivity(intent1);
+                finish();
             }
-            
-            //    System.out.println("fastRouteInfo : " + fastRouteInfo[0] + ", " + fastRouteInfo[1]);
-            // [0] : 남은 시간, [1] : routeno
-            Intent intent1 = new Intent(blind_route.this, blind_notice.class);
-            intent1.putExtra("startRoute_nodenm", startRoute_nodenm);
-            intent1.putExtra("endRoute_nodenm", endRoute_nodenm);
-            intent1.putExtra("fastRouteInfo[1]", fastRouteInfo_Routeno);
-            intent1.putExtra("fastRouteInfo[0]", fastRouteInfo_arrT);
-            intent1.putExtra("fastRoute_routeId", fastRoute_routeId);
-            intent1.putExtra("startnodeID", fastRoute_nodeId);
-            intent1.putExtra("endnodeID", endRoute_nodeId);
-            intent1.putExtra("fastRoute_cityCode", fastRoute_cityCode);
-            startActivity(intent1);
-            finish();
         }
     }
 //////////////////////////////////////////////////////////////////////////

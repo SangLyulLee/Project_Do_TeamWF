@@ -178,7 +178,7 @@ public class blind_wait extends AppCompatActivity {
                                         String[] Routepos_List = RouteposData[i].split(" ");
                                         if (Routepos_List[2].equals(noticeData.getVehicleno())) {
                                             nowNodeOrd = Routepos_List[1];
-                                            if (Integer.parseInt(sNodeord)+1 > Integer.parseInt(nowNodeOrd)) {
+                                            if (Integer.parseInt(sNodeord) > Integer.parseInt(nowNodeOrd)) {
                                                 tts.speak("지난 알림입니다. 알림이 자동으로 삭제됩니다.", TextToSpeech.QUEUE_ADD, null);
                                                 database.getReference("Notice_api").child(getKey).removeValue();
                                                 while (true) {
@@ -186,11 +186,11 @@ public class blind_wait extends AppCompatActivity {
                                                         break;
                                                     }
                                                 }
+                                                timer.cancel();
+                                                noticeBool = false;
                                                 Intent finish_intent = new Intent(blind_wait.this, blind_main.class);
                                                 startActivity(finish_intent);
                                                 finish();
-                                                timer.cancel();
-                                                noticeBool = false;
                                             }
                                             break;
                                         }
@@ -202,11 +202,11 @@ public class blind_wait extends AppCompatActivity {
                                                     break;
                                                 }
                                             }
+                                            noticeBool = false;
+                                            timer.cancel();
                                             Intent finish_intent = new Intent(blind_wait.this, blind_main.class);
                                             startActivity(finish_intent);
                                             finish();
-                                            noticeBool = false;
-                                            timer.cancel();
                                             break;
                                         }
                                     }

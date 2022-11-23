@@ -84,6 +84,13 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
         mapView.setMapViewEventListener(this);
         mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(latitude, longitude), true);
 
+        MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude);
+        marker.setItemName("현재 위치");
+        marker.setTag(0);
+        marker.setMapPoint(mapPoint);
+        marker.setMarkerType(MapPOIItem.MarkerType.RedPin);
+        mapView.addPOIItem(marker);
+
         final int busNum = getIntent().getIntExtra("busNum", 0);
         String apibool = getIntent().getStringExtra("api_bool");
 
@@ -149,7 +156,7 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
             String[] api_split = get_api.getBusRoute(citycode, routeid, "1").split("\n");
             for (int i=0; i<api_split.length; i++) {
                 String[] api_split2 = api_split[i].split(" ");
-                MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
+                mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
                 marker.setItemName(api_split2[3] + "(" + api_split2[4] + ")");
                 marker.setTag(0);
                 marker.setMapPoint(mapPoint);
@@ -158,6 +165,7 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
                 mapView.addPOIItem(marker);
                 polyline.addPoint(mapPoint);
             }
+
             mapView.addPolyline(polyline);
             MapPointBounds mapPointBounds = new MapPointBounds(polyline.getMapPoints());
             int padding = 100;
@@ -170,7 +178,7 @@ public class RouteMapActivity extends AppCompatActivity implements MapView.Curre
             String[] api_split = get_api.getStationInfo(citycode, "", "1").split("\n");
             for (int i=0; i<api_split.length; i++) {
                 String[] api_split2 = api_split[i].split(" ");
-                MapPoint mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
+                mapPoint = MapPoint.mapPointWithGeoCoord(Double.parseDouble(api_split2[0]), Double.parseDouble(api_split2[1]));
                 marker.setItemName(api_split2[3] + "(" + api_split2[4] + ")");
                 marker.setTag(0);
                 marker.setMapPoint(mapPoint);

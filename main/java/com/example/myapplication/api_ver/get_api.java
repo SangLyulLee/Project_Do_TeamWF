@@ -234,6 +234,7 @@ public class get_api {
         } catch (Exception e) {
             System.out.println(e);
         }
+        System.out.println("buffer : "+buffer);
         return buffer.toString();
     }
 

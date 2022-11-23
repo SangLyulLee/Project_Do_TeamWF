@@ -106,7 +106,7 @@ public class blind_notice extends AppCompatActivity {
         System.out.println("speakString : " + speakString);
 
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        vibrator.vibrate(new long[]{500, 500, 500, 500, 500}, -1);
+        vibrator.vibrate(new long[]{500, 500, 500, 500, 500, 500}, -1);
 
         StringBuilder matchStr = new StringBuilder();
         Button btn = (Button) findViewById(R.id.notice_btn);
