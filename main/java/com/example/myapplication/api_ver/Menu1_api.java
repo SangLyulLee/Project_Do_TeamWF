@@ -50,7 +50,7 @@ public class Menu1_api extends AppCompatActivity {
             ActivityCompat.requestPermissions(Menu1_api.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            String provider = location.getProvider();
+        //    String provider = location.getProvider();
             if (location == null) {
                 latitude = 34.800774;
                 longitude = 126.370871;
@@ -67,7 +67,7 @@ public class Menu1_api extends AppCompatActivity {
         ListAdapter listAdapter = new ListAdapter();
         list.setAdapter(listAdapter);
 
-        String[] api_split = get_api.getBusStation_ByGps(latitude, longitude).split("\n");
+        String[] api_split = get_api.getBusStation_ByGps(latitude, longitude, 5).split("\n");
         String[] api_split2 = api_split[0].split(" ");
 
         search_btn.setOnClickListener(new View.OnClickListener() {
@@ -85,6 +85,7 @@ public class Menu1_api extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         Intent intent = new Intent(Menu1_api.this, Node_ArriInfo.class);
                         intent.putExtra("citycode", api_split2[0]);
+                        searchInfo = api_split[i].split(" ");
                         intent.putExtra("nodeid", searchInfo[1]);
                         startActivity(intent);
                     }
@@ -92,6 +93,7 @@ public class Menu1_api extends AppCompatActivity {
             }
         });
 
+        System.out.println("citycode : " + api_split2[0]);
         route_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -103,6 +105,9 @@ public class Menu1_api extends AppCompatActivity {
                         stationList = stationInfo[i].split(" ");
                         if (stationList.length == 1) {
                             Toast.makeText(Menu1_api.this, "검색 오류입니다. 다시 입력해주세요.", Toast.LENGTH_SHORT).show();
+                        }
+                        else if (stationList.length == 4) {
+                            listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.non), (i + 1) + ". " + stationList[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
                         }
                         else {
                             listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.non), (i + 1) + ". " + stationList[3] + " (" + stationList[4] + ")", ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
@@ -116,6 +121,7 @@ public class Menu1_api extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         Intent intent = new Intent(Menu1_api.this, Node_ArriInfo.class);
                         intent.putExtra("citycode", api_split2[0]);
+                        stationList = stationInfo[i].split(" ");
                         intent.putExtra("nodeid", stationList[2]);
                         startActivity(intent);
                     }

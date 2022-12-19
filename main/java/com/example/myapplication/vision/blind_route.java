@@ -60,7 +60,7 @@ public class blind_route extends AppCompatActivity {
             ActivityCompat.requestPermissions(blind_route.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            String provider = location.getProvider();
+        //    String provider = location.getProvider();
             if (location == null) {
                 latitude = 34.800774;
                 longitude = 126.370871;
@@ -117,7 +117,7 @@ public class blind_route extends AppCompatActivity {
         // 도착지 정류장 5개
         boolean desEx = true;
         boolean startEx = true;
-        String[] api_split = get_api.getBusStation_ByGps(des_location.getLatitude(), des_location.getLongitude()).split("\n");
+        String[] api_split = get_api.getBusStation_ByGps(des_location.getLatitude(), des_location.getLongitude(), 5).split("\n");
         System.out.println("도착 정류장");
         for (int i=0; i<api_split.length; i++) {
             System.out.println("api_split["+i+"] = " + api_split[i]);
@@ -162,7 +162,7 @@ public class blind_route extends AppCompatActivity {
             }
         }
         // 출발지 정류장 5개
-        api_split = get_api.getBusStation_ByGps(latitude, longitude).split("\n");
+        api_split = get_api.getBusStation_ByGps(latitude, longitude, 2).split("\n");
         System.out.println("출발 정류장 _ latitude : "+ latitude + ", longitude : " + longitude);
         for (int i=0; i<api_split.length; i++) {
             System.out.println("api_split["+i+"] = " + api_split[i]);

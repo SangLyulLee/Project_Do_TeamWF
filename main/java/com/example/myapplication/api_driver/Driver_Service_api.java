@@ -51,7 +51,7 @@ public class Driver_Service_api extends Service {
 
             clsBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
             clsBuilder.setSmallIcon(R.drawable.logo)
-                    .setContentTitle("DO! 알림")
+                    .setContentTitle("WithBus 알림")
                     .setContentText("장애인 버스 서비스 실행중")
                     .setContentIntent(pendingIntent);
 

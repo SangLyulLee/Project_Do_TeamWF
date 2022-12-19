@@ -70,7 +70,7 @@ public class Service_Cancle extends Service {
 
             clsBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
             clsBuilder.setSmallIcon(R.drawable.logo)
-                    .setContentTitle("DO! 알림")
+                    .setContentTitle("WithBus 알림")
                     .setContentText("알림이 취소되었습니다.")
                     .setContentIntent(pendingIntent);
 
