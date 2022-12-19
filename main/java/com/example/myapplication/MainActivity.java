@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,10 +57,10 @@ public class MainActivity extends AppCompatActivity {
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 
-        Button button1 = (Button) findViewById(R.id.button1);
-        Button button2 = (Button) findViewById(R.id.button2);
-        Button button3 = (Button) findViewById(R.id.button3);
-        Button button4 = (Button) findViewById(R.id.button4);
+        ImageButton button1 = (ImageButton) findViewById(R.id.button1);
+        ImageButton button2 = (ImageButton) findViewById(R.id.button2);
+        ImageButton button3 = (ImageButton) findViewById(R.id.button3);
+        ImageButton button4 = (ImageButton) findViewById(R.id.button4);
         Button button5 = (Button) findViewById(R.id.button_api);
 
         /* name 출력 */
@@ -198,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 }
                                                                 else {
                                                                     /* 알림 확인 버튼 활성화 */
-                                                                    Button button3 = (Button) findViewById(R.id.button3);
+                                                                    ImageButton button3 = (ImageButton) findViewById(R.id.button3);
                                                                     button3.setOnClickListener(new View.OnClickListener() {
                                                                         @Override
                                                                         public void onClick(View v) {
@@ -307,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 }
                                                                 else {
                                                                     /* 알림 확인 버튼 활성화 */
-                                                                    Button button3 = (Button) findViewById(R.id.button3);
+                                                                    ImageButton button3 = (ImageButton) findViewById(R.id.button3);
                                                                     button3.setOnClickListener(new View.OnClickListener() {
                                                                         @Override
                                                                         public void onClick(View v) {
@@ -370,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
                     pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 }
 
-                Button button3 = (Button) findViewById(R.id.button3);
+                ImageButton button3 = (ImageButton) findViewById(R.id.button3);
                 button3.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

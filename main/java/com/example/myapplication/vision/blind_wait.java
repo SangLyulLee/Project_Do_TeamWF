@@ -12,10 +12,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,6 +36,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,6 +56,9 @@ public class blind_wait extends AppCompatActivity {
     String sNodeord = null, eNodeord, nowNodeOrd;
     String getKey;
     boolean noticeBool = true;
+    RecognitionListener listener;
+    SpeechRecognizer mRecognizer;
+    Intent intent;
 
     @Override
     protected void onCreate(Bundle savedIntancdState) {
@@ -78,6 +86,7 @@ public class blind_wait extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     if (snapshot.child("Uid").getValue(String.class).equals(firebaseUser.getUid())) {
                         noticeData = snapshot.getValue(NoticeApi.class);
+                        getKey = snapshot.getKey();
                         break;
                     }
                 }
@@ -104,6 +113,105 @@ public class blind_wait extends AppCompatActivity {
             }
         };
         timer.schedule(timerTask, 1000);
+
+        StringBuilder matchStr = new StringBuilder();
+        listener = new RecognitionListener() {
+            @Override
+            public void onReadyForSpeech(Bundle params) {
+                Toast.makeText(getApplicationContext(), "음성인식을 시작합니다.", Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onBeginningOfSpeech() {
+            }
+
+            @Override
+            public void onRmsChanged(float rmsdB) {
+            }
+
+            @Override
+            public void onBufferReceived(byte[] buffer) {
+            }
+
+            @Override
+            public void onEndOfSpeech() {
+            }
+
+            @Override
+            public void onError(int error) {
+                String message;
+
+                switch (error) {
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        message = "오디오 에러";
+                        break;
+                    case SpeechRecognizer.ERROR_CLIENT:
+                        message = "클라이언트 에러";
+                        break;
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        message = "퍼미션 없음";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        message = "네트워크 에러";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                        message = "네트웍 타임아웃";
+                        break;
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        message = "찾을 수 없음";
+                        break;
+                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                        message = "RECOGNIZER가 바쁨";
+                        break;
+                    case SpeechRecognizer.ERROR_SERVER:
+                        message = "서버가 이상함";
+                        break;
+                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                        message = "말하는 시간초과";
+                        break;
+                    default:
+                        message = "알 수 없는 오류임";
+                        break;
+                }
+
+                Toast.makeText(getApplicationContext(), "에러가 발생하였습니다. : " + message, Toast.LENGTH_SHORT).show();
+                System.out.println(getApplicationContext() + " " + message);
+            }
+
+            @Override
+            public void onResults(Bundle results) {
+                // 말을 하면 ArrayList에 단어를 넣고 textView에 단어 연결
+                System.out.println("음성인식성공");
+                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                for (int i = 0; i < matches.size(); i++) {
+                    matchStr.append(matches.get(i));
+                }
+                System.out.println("matchStr : " + matchStr.toString());
+
+                if (matchStr.toString().equals("삭제")) {
+
+                    database.getReference("Notice_api").child(getKey).removeValue();
+                    tts.speak("알림이 삭제되었습니다.", TextToSpeech.QUEUE_ADD, null);
+
+                    Intent intent1 = new Intent(blind_wait.this, blind_main.class);
+                    startActivity(intent1);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onPartialResults(Bundle partialResults) {
+            }
+
+            @Override
+            public void onEvent(int eventType, Bundle params) {
+            }
+        };
+
+        intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
 
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
@@ -140,12 +248,20 @@ public class blind_wait extends AppCompatActivity {
                                             }
                                         }
                                     }
-                                    String tts_str = "탑승 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "\n남은 정류장 수 : " + busData_fast[0] + "\n남은 시간 : " + busData_fast[1] + " 분";
+                                    String tts_str = "탑승 정류장 : " + busData_fast[2] + "\n버스 번호 : " + busData_fast[3] + "번\n남은 정류장 수 : " + busData_fast[0] + "개\n남은 시간 : " + busData_fast[1] + " 분\n알림을 삭제하시려면\n삭제라고 말해주세요";
                                     textView.setText(tts_str);
                                     textView.setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
                                             tts.speak(tts_str, TextToSpeech.QUEUE_ADD, null);
+                                            while (true) {
+                                                if (!tts.isSpeaking())
+                                                    break;
+                                            }
+                                            matchStr.delete(0, matchStr.length());
+                                            mRecognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
+                                            mRecognizer.setRecognitionListener(listener);
+                                            mRecognizer.startListening(intent);
                                         }
                                     });
                                     if (busData_fast[0].equals("1")) {
@@ -187,7 +303,7 @@ public class blind_wait extends AppCompatActivity {
                                         String[] Routepos_List = RouteposData[i].split(" ");
                                         if (Routepos_List[2].equals(noticeData.getVehicleno())) {
                                             nowNodeOrd = Routepos_List[1];
-                                            if (Integer.parseInt(sNodeord) > Integer.parseInt(nowNodeOrd)) {
+                                            if (Integer.parseInt(sNodeord) > Integer.parseInt(nowNodeOrd)+1) {
                                                 tts.speak("지난 알림입니다. 알림이 자동으로 삭제됩니다.", TextToSpeech.QUEUE_ADD, null);
                                                 database.getReference("Notice_api").child(getKey).removeValue();
                                                 while (true) {
