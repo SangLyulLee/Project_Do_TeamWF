@@ -65,7 +65,7 @@ public class Alarm_Service_api extends Service {
 
             clsBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
             clsBuilder.setSmallIcon(R.drawable.logo)
-                    .setContentTitle("DO! 알림")
+                    .setContentTitle("WithBus 알림")
                     .setContentText("알림 설정한 버스가 곧 도착합니다!")
                     .setContentIntent(pendingIntent);
 

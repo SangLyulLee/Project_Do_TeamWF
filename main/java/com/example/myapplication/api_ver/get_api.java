@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class get_api {
-    public static String getBusStation_ByGps(double Lati, double Long) {
+    public static String getBusStation_ByGps(double Lati, double Long, int Nodes) {
         int i = 0;
 
         String api_url = "http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList";
@@ -36,7 +36,7 @@ public class get_api {
             int eventType = xpp.getEventType();
 
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (i == 5) {
+                if (i == Nodes) {
                     break;
                 }
                 switch (eventType) {

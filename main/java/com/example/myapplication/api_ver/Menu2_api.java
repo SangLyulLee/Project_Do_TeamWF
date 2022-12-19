@@ -44,6 +44,7 @@ public class Menu2_api extends AppCompatActivity {
 
         EditText edit2 = (EditText) findViewById(R.id.editText2);
         Button route_btn = (Button) findViewById(R.id.route_btn);
+        System.out.println("citycode : " + citycode);
 
         route_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,14 +64,20 @@ public class Menu2_api extends AppCompatActivity {
                     }
                     else {
                         api_split2 = api_split[api_split.length - 1].split(" ");
+                        System.out.println("asd " +api_split2[0]);
                         api_split3 = get_api.getBusRoute(citycode, api_split2[0], "1").split("\n");
                         listAdapter.list_clear();
                         for (int i = 0; i < api_split3.length; i++) {
                             api_split4 = api_split3[i].split(" ");
-                            if (api_split4[6].equals("0"))
+                            if (api_split4.length == 7) {
+                                if (api_split4[6].equals("0"))
+                                    listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd0), Integer.toString(i + 1) + ". " + api_split4[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                                else if (api_split4[6].equals("1"))
+                                    listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd1), Integer.toString(i + 1) + ". " + api_split4[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                            }
+                            else {
                                 listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd0), Integer.toString(i + 1) + ". " + api_split4[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
-                            else if (api_split4[6].equals("1"))
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd1), Integer.toString(i + 1) + ". " + api_split4[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                            }
                         }
                     }
                     listAdapter.notifyDataSetChanged();

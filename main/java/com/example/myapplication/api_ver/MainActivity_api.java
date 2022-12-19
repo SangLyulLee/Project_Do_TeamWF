@@ -21,6 +21,7 @@ import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -94,10 +95,12 @@ public class MainActivity_api extends AppCompatActivity {
         }
 
         TextView textView = (TextView) findViewById(R.id.textView);
-        Button button1 = (Button) findViewById(R.id.button1);
-        Button button2 = (Button) findViewById(R.id.button2);
-        Button button3 = (Button) findViewById(R.id.button3);
-        Button button4 = (Button) findViewById(R.id.button4);
+        ImageButton button1 = (ImageButton) findViewById(R.id.button1);
+        ImageButton button2 = (ImageButton) findViewById(R.id.button2);
+        ImageButton button3 = (ImageButton) findViewById(R.id.button3);
+        ImageButton button4 = (ImageButton) findViewById(R.id.button4);
+        Button button5 = (Button) findViewById(R.id.button_api);
+        button5.setVisibility(View.INVISIBLE);
 
         mDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -121,7 +124,7 @@ public class MainActivity_api extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity_api.this, Menu2_api.class);
-                String[] api_split = get_api.getBusStation_ByGps(latitude, longitude).split("\n");
+                String[] api_split = get_api.getBusStation_ByGps(latitude, longitude, 5).split("\n");
                 String[] api_split2 = api_split[0].split(" ");
                 intent.putExtra("citycode", api_split2[0]);
                 startActivity(intent);

@@ -57,10 +57,15 @@ public class NoticeRe_api extends AppCompatActivity {
                         listAdapter.list_clear();
                         for (int i=0; i<api_split.length; i++) {
                             String[] api_split2 = api_split[i].split(" ");
-                            if (api_split2[6].equals("0"))
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd0), Integer.toString(i+1)+". "+api_split2[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
-                            else if (api_split2[6].equals("1"))
-                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd1), Integer.toString(i+1)+". "+api_split2[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                            if (api_split2.length == 7) {
+                                if (api_split2[6].equals("0"))
+                                    listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd0), Integer.toString(i + 1) + ". " + api_split2[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                                else if (api_split2[6].equals("1"))
+                                    listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd1), Integer.toString(i + 1) + ". " + api_split2[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                            }
+                            else {
+                                listAdapter.addList(ContextCompat.getDrawable(getApplicationContext(), R.drawable.updowncd0), Integer.toString(i + 1) + ". " + api_split2[3], ContextCompat.getDrawable(getApplicationContext(), R.drawable.non));
+                            }
                             if (api_split2[2].equals(noticeData.getSbusStopNodeId())) {
                                 listAdapter.list_clear();
                                 s_pos = i+1;
